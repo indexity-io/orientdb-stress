@@ -10,6 +10,9 @@ packages = [{include = "orientdb_stress_tester"}]
 python = "^3.9"
 
 
+[tool.poetry.group.dev.dependencies]
+black = "^22.6.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
