@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "orientdb-stress-tester"
+version = "0.1.0"
+description = "A Docker based stress testing tool for OrientDB"
+authors = ["Tim Whittington <tim.whittington@indexity.io>"]
+readme = "README.md"
+packages = [{include = "orientdb_stress_tester"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
