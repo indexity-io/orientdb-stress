@@ -1,2 +1,5 @@
 *.pyc
 
+scenarios/
+dist/
+
