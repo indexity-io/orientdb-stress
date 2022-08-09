@@ -12,6 +12,7 @@ A Docker based stress testing tool for [OrientDB](https://github.com/orientechno
 
  * Docker Compose
  * curl
+ * zip
 
 
 ## Developing

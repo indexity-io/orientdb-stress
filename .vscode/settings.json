@@ -13,6 +13,6 @@
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
-    "python.linting.pylintCategorySeverity.refactor": "Information",
+    "python.linting.pylintCategorySeverity.refactor": "Hint",
     "python.linting.pylintCategorySeverity.convention": "Hint"
 }

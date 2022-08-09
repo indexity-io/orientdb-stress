@@ -1,0 +1,1 @@
+from orientdb_stress_tester.core import OdbException
