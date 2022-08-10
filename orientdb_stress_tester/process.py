@@ -244,9 +244,9 @@ class OrientDBServerPoolManager(ScenarioAware):
     def clean_data(self) -> None:
         shutil.rmtree(self.data_dir, ignore_errors=True)
 
-    def backup_data(self, backup_file_path: Path) -> None:
+    def backup_data(self, backup_file_base_path: Path) -> None:
         parent_dir = self.data_dir.parent
-        subprocess.run(["zip", "-r", backup_file_path, self.data_dir.name], capture_output=True, check=True, cwd=parent_dir)
+        shutil.make_archive(str(backup_file_base_path), "zip", root_dir=parent_dir, base_dir=self.data_dir.name)
 
     def on_scenario_begin(self, scenario: Scenario) -> None:
         self.clean_data()
@@ -284,4 +284,4 @@ class OrientDBServerPoolManager(ScenarioAware):
 
     def on_scenario_end(self, scenario: Scenario) -> None:
         self.stop_all()
-        self.backup_data(scenario.allocate_file("orientdb-backup.zip"))
+        self.backup_data(scenario.allocate_file("orientdb-backup"))
