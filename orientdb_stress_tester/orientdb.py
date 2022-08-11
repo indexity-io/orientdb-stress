@@ -1,10 +1,13 @@
 import json
 import logging
-import subprocess
 import traceback
 import typing
 from random import Random
 from typing import Any, Optional, Sequence
+
+import requests
+import requests.exceptions
+from requests.auth import HTTPBasicAuth
 
 from orientdb_stress_tester import timed
 from orientdb_stress_tester.core import OdbException
@@ -29,8 +32,6 @@ class OdbUnauthorisedException(OdbRestException):
 
 
 class OdbServer:
-    _CURL_CMD = "curl"
-
     def __init__(self, name: str, server_root: str, user: str, passwd: str) -> None:
         self.name = name
         self.server_root = server_root
@@ -44,24 +45,19 @@ class OdbServer:
     def set_running(self, run: bool) -> None:
         self.running = run
 
-    def invoke_rest(self, verb: str, path: str, *args: str) -> JsonObject:
-        cmd = [
-            OdbServer._CURL_CMD,
-            # "--fail-with-body",
-            "-X",
-            verb,
-            "-u",
-            f"{self.user}:{self.passwd}",
-            f"{self.server_root}{path}",
-        ] + list(args)
-        logging.debug(cmd)
-        completed = subprocess.run(cmd, capture_output=True, check=False)
-        logging.debug(completed.stdout)
-        if not completed.stdout:
+    def invoke_rest(self, verb: str, path: str, post_data: Optional[str] = None) -> JsonObject:
+        try:
+            response = requests.request(
+                verb, f"{self.server_root}{path}", data=post_data, auth=HTTPBasicAuth(self.user, self.passwd)
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise OdbRestException(self.server_root, 503, "Connection Error") from e
+        logging.debug(response.content)
+        if len(response.content) == 0:
             raise OdbRestException(self.server_root, 503, "No response")
-        response = json.loads(completed.stdout)
-        if isinstance(response, dict):
-            errs = response.get("errors")
+        response_obj = json.loads(response.content)
+        if isinstance(response_obj, dict):
+            errs = response_obj.get("errors")
             if errs is not None:
                 code = errs[0]["code"]
                 msg = errs[0]["content"]
@@ -71,10 +67,10 @@ class OdbServer:
                     raise OdbUnauthorisedException(self.server_root, code, msg)
                 raise OdbRestException(self.server_root, code, msg)
 
-        return response
+        return response_obj
 
     def cmd(self, database: str, query: str) -> JsonObject:
-        return self.invoke_rest("POST", f"/command/{database}/sql/", "-d", query)
+        return self.invoke_rest("POST", f"/command/{database}/sql/", post_data=query)
 
     def sql(self, database: str, query: str) -> JsonObject:
         return self.invoke_rest("GET", f"/query/{database}/sql/{query.replace(' ', '%20')}")
