@@ -6,17 +6,17 @@ import subprocess
 from pathlib import Path
 from typing import IO, Optional, Sequence, Text, TextIO, Tuple
 
-from orientdb_stress_tester import timed
-from orientdb_stress_tester.concurrent import FirmThread
-from orientdb_stress_tester.core import OdbException
-from orientdb_stress_tester.docker import DockerCompose
-from orientdb_stress_tester.orientdb import (
+from orientdb_stress import timed
+from orientdb_stress.concurrent import FirmThread
+from orientdb_stress.core import OdbException
+from orientdb_stress.docker import DockerCompose
+from orientdb_stress.orientdb import (
     OdbOfflineException,
     OdbServer,
     OdbServerPool,
 )
-from orientdb_stress_tester.scenario import Scenario, ScenarioAware
-from orientdb_stress_tester.workload import OrientDBErrorClassifier
+from orientdb_stress.scenario import Scenario, ScenarioAware
+from orientdb_stress.workload import OrientDBErrorClassifier
 
 
 class StreamMonitor(FirmThread[Tuple[int, str]]):

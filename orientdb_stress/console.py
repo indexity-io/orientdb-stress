@@ -2,7 +2,7 @@ import argparse
 import os
 import time
 
-from orientdb_stress_tester.scenarios import OrientDBScenarioConfig, Scenarios
+from orientdb_stress.scenarios import OrientDBScenarioConfig, Scenarios
 
 ORIENTDB_USER = os.getenv("ORIENTDB_USER", "root")
 ORIENTDB_PASSWD = os.getenv("ORIENTDB_PASSWD", "password")

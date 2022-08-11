@@ -4,12 +4,12 @@ import re
 import traceback
 from typing import Any, Optional, Sequence, Union
 
-from orientdb_stress_tester import timed
-from orientdb_stress_tester.concurrent import FirmThread
-from orientdb_stress_tester.core import OdbException
-from orientdb_stress_tester.orientdb import JsonObject, Odb, OdbRestException
-from orientdb_stress_tester.record import Record
-from orientdb_stress_tester.scenario import (
+from orientdb_stress import timed
+from orientdb_stress.concurrent import FirmThread
+from orientdb_stress.core import OdbException
+from orientdb_stress.orientdb import JsonObject, Odb, OdbRestException
+from orientdb_stress.record import Record
+from orientdb_stress.scenario import (
     AbstractErrorClassifier,
     Scenario,
     ScenarioAware,

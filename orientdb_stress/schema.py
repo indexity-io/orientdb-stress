@@ -1,8 +1,8 @@
 import logging
 from typing import Optional, Sequence
 
-from orientdb_stress_tester.orientdb import JsonObject, Odb
-from orientdb_stress_tester.scenario import Scenario, ScenarioAware
+from orientdb_stress.orientdb import JsonObject, Odb
+from orientdb_stress.scenario import Scenario, ScenarioAware
 
 
 class OdbPropertyDef:

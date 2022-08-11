@@ -4,8 +4,8 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any
 
-from orientdb_stress_tester.orientdb import OdbServer
-from orientdb_stress_tester.process import OrientDBServerPoolManager
+from orientdb_stress.orientdb import OdbServer
+from orientdb_stress.process import OrientDBServerPoolManager
 
 
 class AbstractServerRestarter(ABC):

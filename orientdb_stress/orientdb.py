@@ -9,8 +9,8 @@ import requests
 import requests.exceptions
 from requests.auth import HTTPBasicAuth
 
-from orientdb_stress_tester import timed
-from orientdb_stress_tester.core import OdbException
+from orientdb_stress import timed
+from orientdb_stress.core import OdbException
 
 JsonObject = dict[str, Any]
 

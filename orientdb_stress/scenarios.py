@@ -6,29 +6,29 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional, Sequence, Type
 
-from orientdb_stress_tester import timed
-from orientdb_stress_tester.core import LOG_FORMAT
-from orientdb_stress_tester.orientdb import Odb, OdbServer, OdbServerPool
-from orientdb_stress_tester.process import OrientDBServerPoolManager
-from orientdb_stress_tester.restarter import (
+from orientdb_stress import timed
+from orientdb_stress.core import LOG_FORMAT
+from orientdb_stress.orientdb import Odb, OdbServer, OdbServerPool
+from orientdb_stress.process import OrientDBServerPoolManager
+from orientdb_stress.restarter import (
     AbstractServerRestarter,
     AlternatingStopStartServerRestarter,
     RandomServerKiller,
     RandomServerRestarter,
     SequentialServerRestarter,
 )
-from orientdb_stress_tester.scenario import (
+from orientdb_stress.scenario import (
     Scenario,
     ScenarioAwareDockerCompose,
     ScenarioManager,
 )
-from orientdb_stress_tester.schema import (
+from orientdb_stress.schema import (
     OdbClassDef,
     OdbIndexDef,
     OdbPropertyDef,
     OdbSchemaInstaller,
 )
-from orientdb_stress_tester.workload import (
+from orientdb_stress.workload import (
     RecordTestDataManager,
     RecordTestDataWorkloadManager,
 )

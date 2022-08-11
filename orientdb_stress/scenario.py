@@ -20,9 +20,9 @@ from typing import (
     TypeVar,
 )
 
-from orientdb_stress_tester.concurrent import FirmThread
-from orientdb_stress_tester.core import LOG_FORMAT
-from orientdb_stress_tester.docker import DockerCompose
+from orientdb_stress.concurrent import FirmThread
+from orientdb_stress.core import LOG_FORMAT
+from orientdb_stress.docker import DockerCompose
 
 
 class ScenarioAware(ABC):

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "orientdb-stress-tester"
+name = "orientdb-stress"
 version = "0.1.0"
 description = "A Docker based stress testing tool for OrientDB"
 authors = ["Tim Whittington <tim.whittington@indexity.io>"]
 readme = "README.md"
-packages = [{include = "orientdb_stress_tester"}]
+packages = [{include = "orientdb_stress"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -60,4 +60,4 @@ disable = [
 ]
 
 [tool.poetry.scripts]
-orientdb-stress = 'orientdb_stress_tester.console:main'
+orientdb-stress = 'orientdb_stress.console:main'
