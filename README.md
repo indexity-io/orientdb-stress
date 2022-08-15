@@ -2,11 +2,13 @@
 
 A Docker based stress testing tool for [OrientDB](https://github.com/orientechnologies/orientdb).
 
-This tool was primarily designed for OrientDB developers to observe the behaviour of the a distributed (muli-node) database under various stress conditions (e.g. restarting, crashing.
+This tool was primarily designed for OrientDB developers to observe the behaviour of the a distributed (muli-node) database under various stress conditions (e.g. restarting, crashing). 
 
 ## Version Compatibility
 
 This tool currently only works on patched versions of OrientDB that incorporate changes to the `HA STATUS` API that allow HA database state to be examined remotely.
+
+At time of writing these patches can be found at https://github.com/indexity-io/orientdb/tree/3.1/ha_db_stability
 
 In addition, the tool currently utilises a patch that artificially expands the startup time of the distributed plugin to expose issues caused during that window to simulate real world conditions where the OrientDB nodes are on remote nodes with longer TCP latencies.
 
