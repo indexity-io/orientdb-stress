@@ -10,6 +10,7 @@ from orientdb_stress import timed
 from orientdb_stress.core import LOG_FORMAT
 from orientdb_stress.orientdb import Odb, OdbServer, OdbServerPool
 from orientdb_stress.process import OrientDBServerPoolManager
+from orientdb_stress.record import Record
 from orientdb_stress.restarter import (
     AbstractServerRestarter,
     AlternatingStopStartServerRestarter,
@@ -23,12 +24,7 @@ from orientdb_stress.scenario import (
     ScenarioManager,
     ScenarioValidator,
 )
-from orientdb_stress.schema import (
-    OdbClassDef,
-    OdbIndexDef,
-    OdbPropertyDef,
-    OdbSchemaInstaller,
-)
+from orientdb_stress.schema import OdbSchemaInstaller
 from orientdb_stress.workload import (
     RecordTestDataManager,
     RecordTestDataWorkloadManager,
@@ -62,25 +58,6 @@ class AbstractScenario(ABC):
 
 
 class ScenarioWorkload:
-
-    SCHEMA = [
-        OdbClassDef(
-            "Record",
-            [
-                OdbPropertyDef("id", "INTEGER"),
-                OdbPropertyDef("prop_uq", "INTEGER"),
-                OdbPropertyDef("prop_nuq", "INTEGER"),
-                OdbPropertyDef("prop_ftx", "STRING"),
-            ],
-            [
-                OdbIndexDef("id", ["id"], "UNIQUE"),
-                OdbIndexDef("prop_uq", ["id", "prop_uq"], "UNIQUE"),
-                OdbIndexDef("prop_nuq", ["prop_nuq"], "NOTUNIQUE"),
-                OdbIndexDef("prop_ftx", ["prop_ftx"], "FULLTEXT ENGINE LUCENE"),
-            ],
-        )
-    ]
-
     @staticmethod
     def enlist(
         scenario: Scenario,
@@ -89,7 +66,7 @@ class ScenarioWorkload:
         **kwargs: Any,
     ) -> None:
         odb = Odb(orientdb_server_pool, "_scenario")
-        schema_installer = OdbSchemaInstaller(odb, ScenarioWorkload.SCHEMA)
+        schema_installer = OdbSchemaInstaller(odb, Record.SCHEMA)
         test_data_mgr = RecordTestDataManager(odb, workload_record_count)
         scenario.enlist(schema_installer, test_data_mgr)
 

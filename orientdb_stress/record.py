@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 
+from orientdb_stress.schema import OdbClassDef, OdbIndexDef, OdbPropertyDef
+
 
 class PropertyType(Enum):
     UNIQUE = 1
@@ -10,6 +12,25 @@ class PropertyType(Enum):
 
 @dataclass(frozen=True)
 class Record:
+
+    SCHEMA = [
+        OdbClassDef(
+            "Record",
+            [
+                OdbPropertyDef("id", "INTEGER"),
+                OdbPropertyDef("prop_uq", "INTEGER"),
+                OdbPropertyDef("prop_nuq", "INTEGER"),
+                OdbPropertyDef("prop_ftx", "STRING"),
+            ],
+            [
+                OdbIndexDef("id", ["id"], "UNIQUE"),
+                OdbIndexDef("prop_uq", ["id", "prop_uq"], "UNIQUE"),
+                OdbIndexDef("prop_nuq", ["prop_nuq"], "NOTUNIQUE"),
+                OdbIndexDef("prop_ftx", ["prop_ftx"], "FULLTEXT ENGINE LUCENE"),
+            ],
+        )
+    ]
+
     rid: str
     record_id: int
     prop_uq: int
