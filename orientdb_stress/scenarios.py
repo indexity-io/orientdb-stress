@@ -86,9 +86,7 @@ class ScenarioWorkload:
         scenario: Scenario,
         orientdb_server_pool: OdbServerPool,
         workload_record_count: int = 100,
-        workload_readonly: bool = False,
-        workload_validation_readonly: bool = False,
-        **kwargs: int,
+        **kwargs: Any,
     ) -> None:
         odb = Odb(orientdb_server_pool, "_scenario")
         schema_installer = OdbSchemaInstaller(odb, ScenarioWorkload.SCHEMA)
@@ -98,8 +96,6 @@ class ScenarioWorkload:
         workload_mgr = RecordTestDataWorkloadManager(
             scenario,
             test_data_mgr,
-            workload_readonly=workload_readonly,
-            workload_validation_readonly=workload_validation_readonly,
             **kwargs,
         )
         scenario.enlist_action(workload_mgr)

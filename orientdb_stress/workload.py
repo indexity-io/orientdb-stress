@@ -2,6 +2,7 @@ import logging
 import random
 import re
 import traceback
+from abc import ABC, abstractmethod
 from typing import Any, Optional, Sequence, Union
 
 from orientdb_stress import timed
@@ -16,6 +17,12 @@ from orientdb_stress.scenario import (
     ScenarioError,
     ScenarioValidator,
 )
+
+
+class RecordWorkload(ABC):
+    @abstractmethod
+    def do_work(self, record_id: int) -> Optional[Record]:
+        pass
 
 
 class RecordTestDataManager(ScenarioAware):
@@ -139,20 +146,58 @@ class RecordTestDataManager(ScenarioAware):
             return None
 
 
+class ReadonlyWorkload(RecordWorkload):
+    def __init__(self, tdm: RecordTestDataManager) -> None:
+        self.tdm = tdm
+
+    def do_work(self, record_id: int) -> Optional[Record]:
+        # Balance load on servers so it's somewhat equivalent in load to update path
+        self.tdm.select_record(record_id)
+        self.tdm.select_record(record_id)
+        return self.tdm.select_record(record_id)
+
+
+class UpdateWorkload(RecordWorkload):
+    def __init__(self, tdm: RecordTestDataManager) -> None:
+        self.tdm = tdm
+
+    def do_work(self, record_id: int) -> Optional[Record]:
+        rec = self.tdm.select_record(record_id)
+        if rec is None:
+            logging.error("Failed to load workload record %s", record_id)
+            return None
+        rec = rec.next_nuq()
+        update_count = self.tdm.update_record_nuq(rec)
+        if update_count != 1:
+            logging.error("Failed update to workload record %s", rec.record_id)
+            return None
+        rec2 = self.tdm.select_record(rec.record_id)
+        if rec2 is None:
+            logging.error("Failed to re-retrieve updated workload record %s", rec.record_id)
+            return None
+
+        if rec.prop_uq != rec2.prop_uq:
+            logging.error("Mismatch on updated workload record %s. Probable lost update!", rec.record_id)
+            logging.debug(" Updated: %s", rec)
+            logging.debug(" Retrieved: %s", rec2)
+            return None
+        return rec
+
+
 class RecordTestDataWorkload(FirmThread[int]):
     def __init__(
         self,
         name: str,
         tdm: RecordTestDataManager,
+        workloads: Sequence[RecordWorkload],
         error_reporter: Scenario.ErrorReporter,
         workload_rate: int,
-        workload_readonly: bool,
     ) -> None:
         super().__init__(name=f"RecordTestDataWorkload-{name}")
         self.tdm = tdm
+        self.workloads = workloads
         self.error_reporter = error_reporter
         self.workload_rate = workload_rate
-        self.workload_readonly = workload_readonly
         self.request_id = 0
         self.workload_failed = False
 
@@ -179,13 +224,8 @@ class RecordTestDataWorkload(FirmThread[int]):
                 return False
             try:
                 rec = None
-                if self.workload_readonly:
-                    # Balance load on servers so it's somewhat equivalent in load to update path
-                    rec = self.tdm.select_record(rec_id)
-                    rec = self.tdm.select_record(rec_id)
-                    rec = self.tdm.select_record(rec_id)
-                else:
-                    rec = self._update_record(rec_id)
+                for wl in self.workloads:
+                    rec = wl.do_work(rec_id)
                 return rec
             except OdbRestException as e:
                 logging.debug("Query for id %s failed with code %d - will retry", rec_id, e.code)
@@ -201,28 +241,6 @@ class RecordTestDataWorkload(FirmThread[int]):
             pause_time = random.uniform(base_sleep * 0.5, base_sleep * 1.5)
             self._wait(pause_time)
         logging.debug("Workload batch completed")
-
-    def _update_record(self, record_id: int) -> Optional[Record]:
-        rec = self.tdm.select_record(record_id)
-        if rec is None:
-            logging.error("Failed to load workload record %s", record_id)
-            return None
-        rec = rec.next_nuq()
-        update_count = self.tdm.update_record_nuq(rec)
-        if update_count != 1:
-            logging.error("Failed update to workload record %s", rec.record_id)
-            return None
-        rec2 = self.tdm.select_record(rec.record_id)
-        if rec2 is None:
-            logging.error("Failed to re-retrieve updated workload record %s", rec.record_id)
-            return None
-
-        if rec.prop_uq != rec2.prop_uq:
-            logging.error("Mismatch on updated workload record %s. Probable lost update!", rec.record_id)
-            logging.debug(" Updated: %s", rec)
-            logging.debug(" Retrieved: %s", rec2)
-            return None
-        return rec
 
 
 class OrientDBErrorClassifier(AbstractErrorClassifier):
@@ -475,16 +493,16 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
         workload_rate: int = 10,
         workload_readonly: bool = False,
         workload_validation_readonly: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         self.tdm = tdm
         self.workloads = [
             RecordTestDataWorkload(
                 f"workload-{index}",
                 tdm,
+                [ReadonlyWorkload(tdm) if workload_readonly else UpdateWorkload(tdm)],
                 scenario.error_reporter(f"workload-{index}", error_classifier=OrientDBRESTErrorClassifier()),
                 workload_rate,
-                workload_readonly,
             )
             for index in range(1, workload_threads + 1)
         ]
