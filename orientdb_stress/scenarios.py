@@ -21,6 +21,7 @@ from orientdb_stress.scenario import (
     Scenario,
     ScenarioAwareDockerCompose,
     ScenarioManager,
+    ScenarioValidator,
 )
 from orientdb_stress.schema import (
     OdbClassDef,
@@ -94,18 +95,15 @@ class ScenarioWorkload:
         test_data_mgr = RecordTestDataManager(odb, workload_record_count)
         scenario.enlist(schema_installer, test_data_mgr)
 
-        workload_mgr = RecordTestDataWorkloadManager(scenario, test_data_mgr, workload_readonly=workload_readonly, **kwargs)
+        workload_mgr = RecordTestDataWorkloadManager(
+            scenario,
+            test_data_mgr,
+            workload_readonly=workload_readonly,
+            workload_validation_readonly=workload_validation_readonly,
+            **kwargs,
+        )
         scenario.enlist_action(workload_mgr)
-
-        def validate_workload(_: float) -> Optional[bool]:
-            if workload_mgr.is_workload_failed():
-                # TODO: Could do this with FATAL level in error reporter?
-                logging.warning("Background workloads reported failure.")
-                return None
-            logging.info("Validating availability for data query/update")
-            return test_data_mgr.validate_workload(workload_validation_readonly)
-
-        scenario.enlist_validation(validate_workload)
+        scenario.enlist_validation(workload_mgr)
 
 
 @dataclass(frozen=True)
@@ -118,7 +116,7 @@ class OrientDBScenarioConfig:
     server_count: int
 
 
-class AbstractDockerComposeScenario(AbstractScenario):
+class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator):
     def __init__(
         self,
         scenario_name: str,
@@ -150,7 +148,7 @@ class AbstractDockerComposeScenario(AbstractScenario):
         )
         self.server_pool_manager = OrientDBServerPoolManager(self.orientdb_server_pool, self.scenario, self.dc, self.sm.data_dir)
         self.scenario.enlist(self.dc, self.server_pool_manager)
-        self.scenario.enlist_validation(self.validate_cluster)
+        self.scenario.enlist_validation(self)
 
         if enable_workload:
             ScenarioWorkload.enlist(self.scenario, self.orientdb_server_pool, **kwargs)
@@ -159,7 +157,7 @@ class AbstractDockerComposeScenario(AbstractScenario):
         self.prepare()
         self.scenario.run_in_scenario(self.run_scenario_body, config)
 
-    def validate_cluster(self, timeout: float) -> Optional[bool]:
+    def validate(self, timeout: float) -> Optional[bool]:
         logging.info("Validating cluster state")
         results = timed.try_all_timed_until(
             [

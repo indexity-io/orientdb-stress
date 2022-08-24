@@ -35,6 +35,12 @@ class ScenarioAware(ABC):
         pass
 
 
+class ScenarioValidator(ABC):
+    @abstractmethod
+    def validate(self, timeout: float) -> Optional[Any]:
+        pass
+
+
 class ScenarioError:
     class ErrorClassification(Enum):
         UNKNOWN = 1
@@ -234,7 +240,7 @@ class Scenario:
         self.started_members: List[ScenarioAware] = []
         self.actions: List[ScenarioAware] = []
         self.started_actions: List[ScenarioAware] = []
-        self.validations: List[Callable[[float], Optional[Any]]] = []
+        self.validations: List[ScenarioValidator] = []
         self.random_seed = os.getenv("RAND_SEED", random.randrange(sys.maxsize))
         self.random = random.Random(self.random_seed)
         self.error_sets: Dict[Scenario.Phase, Dict[str, ScenarioErrorSet]] = {}
@@ -249,7 +255,7 @@ class Scenario:
         for sa in scenario_aware:
             self.actions.append(sa)
 
-    def enlist_validation(self, *validation: Callable[[float], Optional[Any]]) -> None:
+    def enlist_validation(self, *validation: ScenarioValidator) -> None:
         for v in validation:
             self.validations.append(v)
 
@@ -362,7 +368,7 @@ class Scenario:
 
     def validate(self, timeout: float) -> Optional[bool]:
         for v in self.validations:
-            valid = v(timeout)
+            valid = v.validate(timeout)
             if valid is None:
                 return None
         return True

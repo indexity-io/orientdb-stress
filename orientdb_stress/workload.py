@@ -14,6 +14,7 @@ from orientdb_stress.scenario import (
     Scenario,
     ScenarioAware,
     ScenarioError,
+    ScenarioValidator,
 )
 
 
@@ -465,7 +466,7 @@ class OrientDBRESTErrorClassifier(AbstractErrorClassifier):
         )
 
 
-class RecordTestDataWorkloadManager(ScenarioAware):
+class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
     def __init__(
         self,
         scenario: Scenario,
@@ -473,8 +474,10 @@ class RecordTestDataWorkloadManager(ScenarioAware):
         workload_threads: int = 1,
         workload_rate: int = 10,
         workload_readonly: bool = False,
-        **kwargs: Any,
+        workload_validation_readonly: bool = False,
+        **kwargs: Any
     ) -> None:
+        self.tdm = tdm
         self.workloads = [
             RecordTestDataWorkload(
                 f"workload-{index}",
@@ -486,6 +489,7 @@ class RecordTestDataWorkloadManager(ScenarioAware):
             for index in range(1, workload_threads + 1)
         ]
         self.workload_rate = workload_rate
+        self.workload_validation_readonly = workload_validation_readonly
 
     def start(self) -> None:
         logging.info(
@@ -518,3 +522,11 @@ class RecordTestDataWorkloadManager(ScenarioAware):
 
     def on_scenario_end(self, scenario: Scenario) -> None:
         self.stop()
+
+    def validate(self, timeout: float) -> Optional[Any]:
+        if self.is_workload_failed():
+            # TODO: Could do this with FATAL level in error reporter?
+            logging.warning("Background workloads reported failure.")
+            return None
+        logging.info("Validating availability for data query/update")
+        return self.tdm.validate_workload(self.workload_validation_readonly)
