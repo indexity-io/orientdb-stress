@@ -9,7 +9,7 @@ from orientdb_stress import timed
 from orientdb_stress.concurrent import FirmThread
 from orientdb_stress.core import OdbException
 from orientdb_stress.orientdb import JsonObject, Odb, OdbRestException
-from orientdb_stress.record import Record
+from orientdb_stress.record import PropertyType, Record
 from orientdb_stress.scenario import (
     AbstractErrorClassifier,
     Scenario,
@@ -102,7 +102,7 @@ class RecordTestDataManager(ScenarioAware):
         return self.odb.update(f"UPDATE {rec.rid} SET prop_nuq = {rec.prop_nuq}")
 
     def update_record_ftx(self, rec: Record) -> int:
-        return self.odb.update(f"UPDATE {rec.rid} SET prop_ftx = {rec.prop_ftx}")
+        return self.odb.update(f"UPDATE {rec.rid} SET prop_ftx = '{rec.prop_ftx}'")
 
     def validate_workload(self, workload_validation_readonly: bool) -> Optional[bool]:
         try:
@@ -157,30 +157,83 @@ class ReadonlyWorkload(RecordWorkload):
         return self.tdm.select_record(record_id)
 
 
+class PropertyUpdate(ABC):
+    @abstractmethod
+    def next_record(self, rec: Record) -> Record:
+        pass
+
+    @abstractmethod
+    def apply_update(self, rec: Record, tdm: RecordTestDataManager) -> int:
+        pass
+
+
+class UniquePropertyUpdate(PropertyUpdate):
+    def next_record(self, rec: Record) -> Record:
+        return rec.next_uq()
+
+    def apply_update(self, rec: Record, tdm: RecordTestDataManager) -> int:
+        return tdm.update_record_uq(rec)
+
+
+class NonUniquePropertyUpdate(PropertyUpdate):
+    def next_record(self, rec: Record) -> Record:
+        return rec.next_nuq()
+
+    def apply_update(self, rec: Record, tdm: RecordTestDataManager) -> int:
+        return tdm.update_record_nuq(rec)
+
+
+class FullTextPropertyUpdate(PropertyUpdate):
+    def next_record(self, rec: Record) -> Record:
+        return rec.next_ftx()
+
+    def apply_update(self, rec: Record, tdm: RecordTestDataManager) -> int:
+        return tdm.update_record_ftx(rec)
+
+
+class PropertyUpdates:
+    @staticmethod
+    def updates_for(property_types: Sequence[PropertyType]) -> Sequence[PropertyUpdate]:
+        def update_for(pt: PropertyType) -> PropertyUpdate:
+            if pt == PropertyType.UNIQUE:
+                return UniquePropertyUpdate()
+            if pt == PropertyType.NOT_UNIQUE:
+                return NonUniquePropertyUpdate()
+            if pt == PropertyType.FULL_TEXT:
+                return FullTextPropertyUpdate()
+            raise TypeError()
+
+        return list(map(update_for, property_types))
+
+
 class UpdateWorkload(RecordWorkload):
-    def __init__(self, tdm: RecordTestDataManager) -> None:
+    def __init__(self, tdm: RecordTestDataManager, updates: Sequence[PropertyUpdate]) -> None:
         self.tdm = tdm
+        self.updates = updates
 
     def do_work(self, record_id: int) -> Optional[Record]:
         rec = self.tdm.select_record(record_id)
         if rec is None:
             logging.error("Failed to load workload record %s", record_id)
             return None
-        rec = rec.next_nuq()
-        update_count = self.tdm.update_record_nuq(rec)
-        if update_count != 1:
-            logging.error("Failed update to workload record %s", rec.record_id)
-            return None
-        rec2 = self.tdm.select_record(rec.record_id)
-        if rec2 is None:
-            logging.error("Failed to re-retrieve updated workload record %s", rec.record_id)
-            return None
 
-        if rec.prop_uq != rec2.prop_uq:
-            logging.error("Mismatch on updated workload record %s. Probable lost update!", rec.record_id)
-            logging.debug(" Updated: %s", rec)
-            logging.debug(" Retrieved: %s", rec2)
-            return None
+        for up in self.updates:
+            rec = up.next_record(rec)
+
+            update_count = up.apply_update(rec, self.tdm)
+            if update_count != 1:
+                logging.error("Failed update to workload record %s", rec.record_id)
+                return None
+            rec2 = self.tdm.select_record(rec.record_id)
+            if rec2 is None:
+                logging.error("Failed to re-retrieve updated workload record %s", rec.record_id)
+                return None
+
+            if rec != rec2:
+                logging.error("Mismatch on updated workload record %s. Probable lost update!", rec.record_id)
+                logging.debug(" Updated: %s", rec)
+                logging.debug(" Retrieved: %s", rec2)
+                return None
         return rec
 
 
@@ -500,7 +553,11 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
             RecordTestDataWorkload(
                 f"workload-{index}",
                 tdm,
-                [ReadonlyWorkload(tdm) if workload_readonly else UpdateWorkload(tdm)],
+                [
+                    ReadonlyWorkload(tdm)
+                    if workload_readonly
+                    else UpdateWorkload(tdm, PropertyUpdates.updates_for([PropertyType.NOT_UNIQUE]))
+                ],
                 scenario.error_reporter(f"workload-{index}", error_classifier=OrientDBRESTErrorClassifier()),
                 workload_rate,
             )
