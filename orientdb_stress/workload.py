@@ -71,7 +71,7 @@ class RecordTestDataManager(ScenarioAware):
         return rec
 
     def create_record(self, record_id: int) -> Record:
-        result = self.odb.cmd(f"INSERT INTO Record SET id = {record_id}, prop_uq = 0, prop_nuq = 0, prop_ftx = 0")["result"]
+        result = self.odb.cmd(f"INSERT INTO Record SET id = {record_id}, prop_uq = 0, prop_nuq = 0, prop_ftx = '0'")["result"]
         return RecordTestDataManager._map_record(result[0])
 
     def select_record(self, record_id: int) -> Optional[Record]:
@@ -193,23 +193,25 @@ class FullTextPropertyUpdate(PropertyUpdate):
 
 class PropertyUpdates:
     @staticmethod
-    def updates_for(property_types: Sequence[PropertyType]) -> Sequence[PropertyUpdate]:
-        def update_for(pt: PropertyType) -> PropertyUpdate:
-            if pt == PropertyType.UNIQUE:
-                return UniquePropertyUpdate()
-            if pt == PropertyType.NOT_UNIQUE:
-                return NonUniquePropertyUpdate()
-            if pt == PropertyType.FULL_TEXT:
-                return FullTextPropertyUpdate()
-            raise TypeError()
+    def update_for(pt: PropertyType) -> PropertyUpdate:
+        if pt == PropertyType.UNIQUE:
+            return UniquePropertyUpdate()
+        if pt == PropertyType.NOT_UNIQUE:
+            return NonUniquePropertyUpdate()
+        if pt == PropertyType.FULL_TEXT:
+            return FullTextPropertyUpdate()
+        raise TypeError(f"Unknown PropertyType {pt}: {type(pt).__name__}")
 
-        return list(map(update_for, property_types))
+    @staticmethod
+    def updates_for(property_types: Sequence[PropertyType]) -> Sequence[PropertyUpdate]:
+        return [PropertyUpdates.update_for(pt) for pt in property_types]
 
 
 class UpdateWorkload(RecordWorkload):
     def __init__(self, tdm: RecordTestDataManager, updates: Sequence[PropertyUpdate]) -> None:
         self.tdm = tdm
         self.updates = updates
+        print(updates)
 
     def do_work(self, record_id: int) -> Optional[Record]:
         rec = self.tdm.select_record(record_id)
@@ -546,8 +548,12 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
         workload_rate: int = 10,
         workload_readonly: bool = False,
         workload_validation_readonly: bool = False,
+        workload_type: PropertyType = PropertyType.NOT_UNIQUE,
         **kwargs: Any,
     ) -> None:
+        if workload_type is None:
+            workload_type = [PropertyType.NOT_UNIQUE]
+
         self.tdm = tdm
         self.workloads = [
             RecordTestDataWorkload(
@@ -556,7 +562,7 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
                 [
                     ReadonlyWorkload(tdm)
                     if workload_readonly
-                    else UpdateWorkload(tdm, PropertyUpdates.updates_for([PropertyType.NOT_UNIQUE]))
+                    else UpdateWorkload(tdm, [PropertyUpdates.update_for(workload_type)])
                 ],
                 scenario.error_reporter(f"workload-{index}", error_classifier=OrientDBRESTErrorClassifier()),
                 workload_rate,

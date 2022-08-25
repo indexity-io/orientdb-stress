@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 
+from orientdb_stress.record import PropertyType
 from orientdb_stress.scenarios import OrientDBScenarioConfig, Scenarios
 
 ORIENTDB_USER = os.getenv("ORIENTDB_USER", "root")
@@ -105,6 +106,13 @@ def main() -> None:
         "--workload_validation_readonly",
         help="Perform only read operations in validation workload",
         action="store_true",
+    )
+    run_parser.add_argument(
+        "--workload_type",
+        help="The type of record updates to apply during update workloads",
+        type=PropertyType.type_for,
+        choices=list(PropertyType),
+        default=PropertyType.NOT_UNIQUE,
     )
     run_parser.add_argument(
         "--alternating_reset_server",
