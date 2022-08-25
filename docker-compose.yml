@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   dorientdb1:
-    image: registry.gitlab.com/indexity/opensource/orientdb-docker/orientdb:3.1.20-dev
+    image: orientdb:3.2.42
     ports:
       - 2481:2480
     environment:
@@ -24,7 +24,7 @@ services:
         setpriv --reuid=orientdb --regid=orientdb --init-groups --inh-caps=-all dserver.sh debug'
 
   dorientdb2:
-    image: registry.gitlab.com/indexity/opensource/orientdb-docker/orientdb:3.1.20-dev
+    image: orientdb:3.2.42
     ports:
       - 2482:2480
     environment:
@@ -46,7 +46,7 @@ services:
         setpriv --reuid=orientdb --regid=orientdb --init-groups --inh-caps=-all dserver.sh debug'
 
   dorientdb3:
-    image: registry.gitlab.com/indexity/opensource/orientdb-docker/orientdb:3.1.20-dev
+    image: orientdb:3.2.42
     ports:
       - 2483:2480
     environment:
