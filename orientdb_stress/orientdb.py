@@ -47,6 +47,7 @@ class OdbServer:
 
     def invoke_rest(self, verb: str, path: str, post_data: Optional[str] = None) -> JsonObject:
         try:
+            logging.debug("%s %s %s", verb, path, "" if post_data is None else post_data)
             response = requests.request(
                 verb, f"{self.server_root}{path}", data=post_data, auth=HTTPBasicAuth(self.user, self.passwd)
             )
