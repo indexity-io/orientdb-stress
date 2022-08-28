@@ -1,15 +1,21 @@
+[build-system]
+requires = ["poetry_core>=1.2.0rc2"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "orientdb-stress"
 version = "0.1.0"
 description = "A Docker based stress testing tool for OrientDB"
 authors = ["Tim Whittington <tim.whittington@indexity.io>"]
 readme = "README.md"
-packages = [{include = "orientdb_stress"}]
+packages = [{ include = "orientdb_stress" }]
+
+[tool.poetry.scripts]
+orientdb-stress = 'orientdb_stress.console:main'
 
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.28.1"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.6.0"
@@ -18,16 +24,25 @@ mypy = "^0.971"
 pylint = "^2.14.5"
 types-requests = "^2.28.8"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.black]
 line-length = 130
+exclude = '''
+/(
+    \.git
+  | __pycache__
+  | \.mypy_cache
+  | \.toxrm 
+  | venv
+  | \.venv
+  | \.vscode
+  | build
+  | dist
+  | target
+)/
+'''
 
 [tool.isort]
-profile = "black" 
-
+profile = "black"
 
 [tool.mypy]
 ignore_missing_imports = false
@@ -45,7 +60,6 @@ disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_subclassing_any = true
 
-
 [tool.pylint.messages_control]
 max-line-length = 130
 disable = [
@@ -58,6 +72,3 @@ disable = [
   "too-many-instance-attributes",
   "too-many-locals",
 ]
-
-[tool.poetry.scripts]
-orientdb-stress = 'orientdb_stress.console:main'
