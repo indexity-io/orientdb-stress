@@ -551,6 +551,7 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
         workload_type: PropertyType = PropertyType.NOT_UNIQUE,
         **kwargs: Any,
     ) -> None:
+        assert kwargs
         if workload_type is None:
             workload_type = [PropertyType.NOT_UNIQUE]
 
