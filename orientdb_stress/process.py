@@ -10,11 +10,7 @@ from orientdb_stress import timed
 from orientdb_stress.concurrent import FirmThread
 from orientdb_stress.core import OdbException
 from orientdb_stress.docker import DockerCompose
-from orientdb_stress.orientdb import (
-    OdbOfflineException,
-    OdbServer,
-    OdbServerPool,
-)
+from orientdb_stress.orientdb import OdbOfflineException, OdbServer, OdbServerPool
 from orientdb_stress.scenario import Scenario, ScenarioAware
 from orientdb_stress.workload import OrientDBErrorClassifier
 

@@ -49,7 +49,7 @@ class OdbServer:
         try:
             logging.debug("%s %s %s", verb, path, "" if post_data is None else post_data)
             response = requests.request(
-                verb, f"{self.server_root}{path}", data=post_data, auth=HTTPBasicAuth(self.user, self.passwd)
+                verb, f"{self.server_root}{path}", data=post_data, auth=HTTPBasicAuth(self.user, self.passwd), timeout=30
             )
         except requests.exceptions.ConnectionError as e:
             raise OdbRestException(self.server_root, 503, "Connection Error") from e
