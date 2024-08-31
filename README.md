@@ -154,11 +154,11 @@ At present the only workload implemented is updates to a property with a unique 
 When workload is enabled, operation of the database to server query/update workloads will be verified at each verification phase:
 
  - for read-only workloads, records are queried.
- - for update workloads, records are queried, updated and queried again to check for succesful update - this will detect failed updates, or lost updates.
+ - for update workloads, records are queried, updated and queried again to check for successful update - this will detect failed updates, or lost updates.
 
 # Developing
 
-Install [Poetry 1.2+](https://python-poetry.org/) (at least 1.2.0 b3).
+Install [Poetry 1.8+](https://python-poetry.org/).
 
 `poetry install`
 `poetry shell`
