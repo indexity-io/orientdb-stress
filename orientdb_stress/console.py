@@ -19,11 +19,11 @@ def main() -> None:
     def list_scenarios(_: argparse.Namespace) -> None:
         print("Available scenarios:")
         for scen in Scenarios.ALL_SCENARIOS:
-            print(f"\t{scen.SCENARIO_NAME:20} : {scen.__doc__}")
+            print(f"\t{scen.SCENARIO_NAME():20} : {scen.__doc__}")
 
     def execute_scenario(args: argparse.Namespace) -> None:
         scenario_constructor = next(
-            (scen for scen in Scenarios.ALL_SCENARIOS if scen.SCENARIO_NAME == args.scenario_name),
+            (scen for scen in Scenarios.ALL_SCENARIOS if scen.SCENARIO_NAME() == args.scenario_name),
             None,
         )
         if not scenario_constructor:

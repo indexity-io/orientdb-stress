@@ -46,10 +46,9 @@ class AbstractScenario(ABC):
         root_logger.setLevel(logging.DEBUG)
         root_logger.addHandler(log_stdout)
 
-    @property
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def SCENARIO_NAME(cls) -> str:
+    def SCENARIO_NAME() -> str:
         pass
 
     @abstractmethod
@@ -154,10 +153,12 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator):
 class StartStopScenario(AbstractDockerComposeScenario):
     """Start cluster, wait for HA to stabilise, run workload for scenario length, shut down."""
 
-    SCENARIO_NAME = "basic-startup"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "basic-startup"
 
     def __init__(self, config: OrientDBScenarioConfig, restart_interval: int = 10, **kwargs: Any) -> None:
-        super().__init__(StartStopScenario.SCENARIO_NAME, config, **kwargs)
+        super().__init__(StartStopScenario.SCENARIO_NAME(), config, **kwargs)
         self.restart_interval = restart_interval
 
     def run_scenario_body(self) -> None:
@@ -215,11 +216,13 @@ class AbstractRestartingScenario(AbstractDockerComposeScenario):
 class RollingRestartScenario(AbstractRestartingScenario):
     """Sequentially restarts server nodes at intervals, validating HA status after each set of restarts."""
 
-    SCENARIO_NAME = "rolling-restart"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "rolling-restart"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
-            RollingRestartScenario.SCENARIO_NAME,
+            RollingRestartScenario.SCENARIO_NAME(),
             SequentialServerRestarter,
             **kwargs,
         )
@@ -235,20 +238,24 @@ class RollingRestartScenario(AbstractRestartingScenario):
 class RandomKillScenario(AbstractRestartingScenario):
     """Kills a random server node at intervals."""
 
-    SCENARIO_NAME = "random-kill"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "random-kill"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
-        super().__init__(RandomKillScenario.SCENARIO_NAME, RandomServerKiller, config, **kwargs)
+        super().__init__(RandomKillScenario.SCENARIO_NAME(), RandomServerKiller, config, **kwargs)
 
 
 class RandomRestartScenario(AbstractRestartingScenario):
     """Restarts a random server node at intervals."""
 
-    SCENARIO_NAME = "random-restart"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "random-restart"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            RandomRestartScenario.SCENARIO_NAME,
+            RandomRestartScenario.SCENARIO_NAME(),
             RandomServerRestarter,
             config,
             **kwargs,
@@ -258,11 +265,13 @@ class RandomRestartScenario(AbstractRestartingScenario):
 class AlternatingStopStartScenario(AbstractRestartingScenario):
     """Stops and starts a random node, waiting for HA status to stabilise after each operation."""
 
-    SCENARIO_NAME = "alternating-stop-start"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "alternating-stop-start"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            AlternatingStopStartScenario.SCENARIO_NAME,
+            AlternatingStopStartScenario.SCENARIO_NAME(),
             AlternatingStopStartServerRestarter,
             **kwargs,
         )
@@ -271,7 +280,9 @@ class AlternatingStopStartScenario(AbstractRestartingScenario):
 class AllScenarios(AbstractScenario):
     """Runs all scenarios in sequence"""
 
-    SCENARIO_NAME = "all"
+    @staticmethod
+    def SCENARIO_NAME() -> str:
+        return "all"
 
     def __init__(self, **kwargs: Any) -> None:
         pass
