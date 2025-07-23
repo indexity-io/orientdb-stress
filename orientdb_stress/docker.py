@@ -9,7 +9,15 @@ class DockerCompose:
     @staticmethod
     def _docker_compose_exec(command: str, *args: str) -> None:
         cmd = ["docker", "compose", command] + list(args)
-        subprocess.run(cmd, capture_output=True, check=True)
+        DockerCompose.LOG.debug("Executing %s", cmd)
+        try:
+            subprocess.run(cmd, capture_output=True, check=True)
+        except subprocess.CalledProcessError as e:
+            DockerCompose.LOG.info("Docker exec failed")
+            DockerCompose.LOG.debug("Docker stdout: %s", e.stdout.decode("utf-8"))
+            DockerCompose.LOG.debug("Docker stderr: %s", e.stderr.decode("utf-8"))
+            raise e
+
 
     def down_all(self) -> None:
         DockerCompose.LOG.info("Down all")
