@@ -121,7 +121,7 @@ def main() -> None:
     )
     run_parser.add_argument(
         "--alternating_kill_server",
-        help="Kill server unclearnly in alternate stop/start scenarios",
+        help="Kill server uncleanly in alternate stop/start scenarios",
         action="store_true",
     )
 

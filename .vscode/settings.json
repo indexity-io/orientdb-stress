@@ -20,10 +20,23 @@
     },
     "python.defaultInterpreterPath": ".venv/bin/python",
     "python.terminal.activateEnvInCurrentTerminal": true,
-    "pylint.severity": {
-        "convention": "Hint"
-    },
+    "cSpell.language": "en-GB",
     "cSpell.enableFiletypes": [
         "!python"
-    ]
+    ],
+    "cSpell.showAutocompleteSuggestions": true,
+    "cSpell.suggestionMenuType": "quickFix",
+    "cSpell.spellCheckOnlyWorkspaceFiles": true,
+    "cSpell.ignoreRegExpList": [],
+    "cSpell.customDictionaries": {
+        "custom-dictionary-workspace": {
+            "name": "custom-dictionary-workspace",
+            "path": "${workspaceFolder}/.cspell/custom-dictionary-workspace.txt",
+            "addWords": true,
+            "scope": "workspace"
+        }
+    },
+    "cSpell.words": [
+        "uncleanly"
+    ],
 }

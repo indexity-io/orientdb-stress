@@ -2,7 +2,7 @@
 
 A Docker based stress testing tool for [OrientDB](https://github.com/orientechnologies/orientdb).
 
-This tool was primarily designed for OrientDB developers to observe the behaviour of the a distributed (muli-node) database under various stress conditions (e.g. restarting, crashing). 
+This tool was primarily designed for OrientDB developers to observe the behaviour of the a distributed (multi-node) database under various stress conditions (e.g. restarting, crashing). 
 
 ## Version Compatibility
 
@@ -101,7 +101,7 @@ optional arguments:
   --alternating_reset_server
                         Reset data directory of stopped node in alternate stop/start scenarios (default: False)
   --alternating_kill_server
-                        Kill server unclearnly in alternate stop/start scenarios (default: False)
+                        Kill server uncleanly in alternate stop/start scenarios (default: False)
 ```
 
 # Supported Scenarios
