@@ -241,8 +241,9 @@ class OrientDBServerPoolManager(ScenarioAware):
         shutil.rmtree(self.data_dir, ignore_errors=True)
 
     def backup_data(self, backup_file_base_path: Path) -> None:
-        parent_dir = self.data_dir.parent
-        shutil.make_archive(str(backup_file_base_path), "gztar", root_dir=parent_dir, base_dir=self.data_dir.name)
+        if self.data_dir.is_dir():
+            parent_dir = self.data_dir.parent
+            shutil.make_archive(str(backup_file_base_path), "gztar", root_dir=parent_dir, base_dir=self.data_dir.name)
 
     def on_scenario_begin(self, scenario: Scenario) -> None:
         self.clean_data()
