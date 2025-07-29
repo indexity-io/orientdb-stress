@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "orientdb-stress"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Docker based stress testing tool for OrientDB"
 authors = ["Tim Whittington <tim.whittington@indexity.io>"]
 readme = "README.md"
