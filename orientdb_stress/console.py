@@ -115,13 +115,13 @@ def main() -> None:
         default=PropertyType.NOT_UNIQUE,
     )
     run_parser.add_argument(
-        "--alternating_reset_server",
-        help="Reset data directory of stopped node in alternate stop/start scenarios",
+        "--stop_start_reset_database",
+        help="Reset data directory of stopped node in stop/start scenarios",
         action="store_true",
     )
     run_parser.add_argument(
-        "--alternating_kill_server",
-        help="Kill server uncleanly in alternate stop/start scenarios",
+        "--stop_start_kill_server",
+        help="Kill server uncleanly in stop/start scenarios",
         action="store_true",
     )
 
