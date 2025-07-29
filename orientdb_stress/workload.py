@@ -389,7 +389,8 @@ class OrientDBErrorClassifier(AbstractErrorClassifier):
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
             "DIST_NODE_REMOVED",
-            AbstractErrorClassifier._exc_regex("WARNI.*Node removed id=Member.*\\[OHazelcastPlugin\\]"),
+            AbstractErrorClassifier._exc_regex(
+                "WARNI.*Node removed id=Member.*\\[(OHazelcastPlugin|OHazelcastClusterMetadataManager)\\]"),
         ),
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
@@ -472,6 +473,30 @@ class OrientDBErrorClassifier(AbstractErrorClassifier):
             ScenarioError.ErrorClassification.KNOWN,
             "STORAGE_INTERRUPT",
             AbstractErrorClassifier._exc_regex("WARNI Execution  of thread .* is interrupted.*\\[OLocalPaginatedStorage\\]"),
+        ),
+        (
+            ScenarioError.ErrorClassification.SUPPRESSED,
+            "DIST_CONFIG_REPAIR_NEEDED",
+            AbstractErrorClassifier._exc_regex(
+                "Error on retrieving 'registeredNodes' from cluster configuration. Repairing the configuration.*\\[OHazelcastClusterMetadataManager\\]"),
+        ),
+        (
+            ScenarioError.ErrorClassification.SUPPRESSED,
+            "DIST_CONFIG_REPAIRED",
+            AbstractErrorClassifier._exc_regex(
+                "Repairing of 'registeredNodes' completed.*\\[OHazelcastClusterMetadataManager\\]"),
+        ),
+        (
+            ScenarioError.ErrorClassification.SUPPRESSED,
+            "RECOVER_EMPTY_WAL",
+            AbstractErrorClassifier._exc_regex(
+                "Record .*EmptyWALRecord.*will be skipped during data restore.*\\[OLocalPaginatedStorage\\]"),
+        ),
+        (
+            ScenarioError.ErrorClassification.SUPPRESSED,
+            "RECOVER_NOT_CLOSED",
+            AbstractErrorClassifier._exc_regex(
+                "Storage.*was not closed properly. Will try to recover from write ahead log.*\\[OLocalPaginatedStorage\\]"),
         ),
     ]
 
