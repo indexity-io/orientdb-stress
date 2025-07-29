@@ -98,7 +98,7 @@ class OrientDBServerMonitor(FirmThread[subprocess.Popen[Text]]):
             start_line_no = self.stream_mon.current_line_no()
 
         self.process = subprocess.Popen[Text](
-            ["docker", "compose", "logs", self.service, "--follow", "--since", "0m"],
+            ["docker", "compose", "logs", self.service, "--follow", "--since", "300ms"],
             text=True,
             stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE,
