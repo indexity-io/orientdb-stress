@@ -27,7 +27,7 @@ class StreamMonitor(FirmThread[Tuple[int, str]]):
         self.error_reporter = error_reporter
         self.line_no = start_line_no
         self._current_message: Optional[Tuple[int, str]] = None
-        self.log_line_start = re.compile(f".+{self.service}.+\\| \\d{{4}}-\\d{{2}}-\\d{{2}} ")
+        self.log_line_start = re.compile(f".*{self.service}.+\\| \\d{{4}}-\\d{{2}}-\\d{{2}} ")
 
     def _locked_prepare_work(self) -> Optional[Tuple[int, str]]:
         line = self.stream.readline()
