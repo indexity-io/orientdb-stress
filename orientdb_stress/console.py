@@ -39,7 +39,7 @@ def main() -> None:
         del config["scenario_name"]
         # print(config)
         # print(scenario_constructor)
-        run_count = 1 if not args.scenario_count else args.scenario_count
+        run_count = args.scenario_count
         for c in range(1, run_count + 1):
             if run_count > 1:
                 print(f"Run {c}/{run_count}")
@@ -60,7 +60,7 @@ def main() -> None:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     run_parser.add_argument("scenario_name", help="Name of the scenario to execute")
-    run_parser.add_argument("-c", "--scenario_count", help="Number of times to run the scenario", type=int)
+    run_parser.add_argument("-c", "--scenario_count", help="Number of times to run the scenario", type=int, default=1)
     run_parser.add_argument(
         "--scenario_length",
         help="Duration of the scenario in seconds",
