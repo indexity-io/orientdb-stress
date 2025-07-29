@@ -53,7 +53,7 @@ class OdbServer:
             )
         except requests.exceptions.ConnectionError as e:
             raise OdbRestException(self.server_root, 503, "Connection Error") from e
-        logging.debug(response.content)
+        logging.debug("Response: %s", response.content.decode("UTF-8"))
         if len(response.content) == 0:
             raise OdbRestException(self.server_root, 503, "No response")
         response_obj = json.loads(response.content)
