@@ -43,7 +43,7 @@ def main() -> None:
         for c in range(1, run_count + 1):
             if run_count > 1:
                 print(f"Run {c}/{run_count}")
-            executable_scenario = scenario_constructor(*[odb_config], **config)
+            executable_scenario = scenario_constructor(odb_config, **config)
             executable_scenario.run(config)
             print()
             if c != run_count:
