@@ -76,6 +76,9 @@ class Failure(TryResult[T]):
     def is_failure(self) -> bool:
         return True
 
+    def as_try(self) -> Optional[T]:
+        raise ValueError("Result is failure")
+
 
 def _untimed(action: UntimedAction[T]) -> TimedAction[T]:
     return lambda rem: action()
@@ -91,6 +94,7 @@ def boolean_to_try(bool_value: bool) -> Optional[bool]:
 
 def failing_exception(action: UntimedAction[T]) -> UntimedAction[T]:
     def _fail() -> Optional[T]:
+        # noinspection PyBroadException
         try:
             return action()
         except Exception:  # pylint: disable=broad-except

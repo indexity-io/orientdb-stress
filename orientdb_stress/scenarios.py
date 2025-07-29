@@ -60,7 +60,7 @@ class AbstractScenario(ABC):
 
     @staticmethod
     @abstractmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         pass
 
     @abstractmethod
@@ -108,6 +108,7 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
         self.sm = ScenarioManager(os.getcwd())
         self.scenario = self.sm.new_scenario(scenario_name)
         self.dc = ScenarioAwareDockerCompose()
+        # noinspection HttpUrlsUsage
         self.orientdb_server_pool = OdbServerPool(
             [
                 OdbServer(
@@ -156,11 +157,11 @@ class BasicStartupScenario(AbstractDockerComposeScenario):
     """Start cluster, wait for HA to stabilise, run workload for scenario length, shut down."""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "basic-startup"
 
     def __init__(self, config: OrientDBScenarioConfig, restart_interval: int = 10, **kwargs: Any) -> None:
-        super().__init__(BasicStartupScenario.SCENARIO_NAME(), config, **kwargs)
+        super().__init__(BasicStartupScenario.scenario_name(), config, **kwargs)
         self.restart_interval = restart_interval
 
     def run_scenario_body(self) -> None:
@@ -188,7 +189,9 @@ class AbstractRestartingScenario(AbstractDockerComposeScenario, ABC):
         **kwargs: Any,
     ) -> None:
         super().__init__(name, config, **kwargs)
+        # noinspection PyArgumentList
         self.selector = selector_factory(self.server_pool_manager, **kwargs)
+        # noinspection PyArgumentList
         self.restarter = restarter_factory(self.server_pool_manager, **kwargs)
         self.restart_interval = restart_interval
 
@@ -242,12 +245,12 @@ class RollingRestartScenario(AbstractRestartingScenario):
     """Sequentially restarts all server nodes at intervals, validating HA status after each set of restarts."""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "rolling-restart"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            RollingRestartScenario.SCENARIO_NAME(),
+            RollingRestartScenario.scenario_name(),
             SequentialServerSelector,
             RestartingServerRestarter,
             config,
@@ -267,12 +270,12 @@ class RandomRestartScenario(AbstractServerRestartingScenario):
     """Restarts a random server node at intervals."""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "random-restart"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            RandomRestartScenario.SCENARIO_NAME(),
+            RandomRestartScenario.scenario_name(),
             RandomServerSelector,
             RestartingServerRestarter,
             config,
@@ -284,12 +287,12 @@ class RandomStopStartScenario(AbstractServerRestartingScenario):
     """Restarts a random server node at intervals."""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "random-stop-start"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            RandomStopStartScenario.SCENARIO_NAME(),
+            RandomStopStartScenario.scenario_name(),
             RandomServerSelector,
             StopStartServerRestarter,
             config,
@@ -301,12 +304,12 @@ class AlternatingStopStartScenario(AbstractServerRestartingScenario):
     """Stops and starts a random node, waiting for HA status to stabilise after each operation."""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "alternate-stop-start"
 
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
-            AlternatingStopStartScenario.SCENARIO_NAME(),
+            AlternatingStopStartScenario.scenario_name(),
             RandomServerSelector,
             AlternatingStopStartServerRestarter,
             config,
@@ -318,10 +321,11 @@ class AllScenarios(AbstractScenario):
     """Runs all scenarios in sequence"""
 
     @staticmethod
-    def SCENARIO_NAME() -> str:
+    def scenario_name() -> str:
         return "all"
 
     def __init__(self, odb_scenario_config: OrientDBScenarioConfig, **kwargs: Any) -> None:
+        # noinspection PyArgumentList
         self.scenarios = [sc(odb_scenario_config, **kwargs) for sc in Scenarios.ALL_SCENARIOS if sc != AllScenarios]
 
     def run(self, config: Dict[str, Any]) -> None:

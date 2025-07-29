@@ -61,7 +61,7 @@ class RecordTestDataManager(ScenarioAware):
 
     def create_records(self) -> Sequence[Record]:
         logging.info("Creating %d records of test data", self.scale)
-        recs = [self.select_or_create_record(id) for id in range(1, self.scale + 1)]
+        recs = [self.select_or_create_record(record_id) for record_id in range(1, self.scale + 1)]
         return recs
 
     def select_or_create_record(self, record_id: int) -> Record:
@@ -390,7 +390,8 @@ class OrientDBErrorClassifier(AbstractErrorClassifier):
             ScenarioError.ErrorClassification.SUPPRESSED,
             "DIST_NODE_REMOVED",
             AbstractErrorClassifier._exc_regex(
-                "WARNI.*Node removed id=Member.*\\[(OHazelcastPlugin|OHazelcastClusterMetadataManager)\\]"),
+                "WARNI.*Node removed id=Member.*\\[(OHazelcastPlugin|OHazelcastClusterMetadataManager)\\]"
+            ),
         ),
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
@@ -478,25 +479,29 @@ class OrientDBErrorClassifier(AbstractErrorClassifier):
             ScenarioError.ErrorClassification.SUPPRESSED,
             "DIST_CONFIG_REPAIR_NEEDED",
             AbstractErrorClassifier._exc_regex(
-                "Error on retrieving 'registeredNodes' from cluster configuration. Repairing the configuration.*\\[OHazelcastClusterMetadataManager\\]"),
+                "Error on retrieving 'registeredNodes' from cluster configuration. Repairing the configuration.*\\[OHazelcastClusterMetadataManager\\]"
+            ),
         ),
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
             "DIST_CONFIG_REPAIRED",
             AbstractErrorClassifier._exc_regex(
-                "Repairing of 'registeredNodes' completed.*\\[OHazelcastClusterMetadataManager\\]"),
+                "Repairing of 'registeredNodes' completed.*\\[OHazelcastClusterMetadataManager\\]"
+            ),
         ),
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
             "RECOVER_EMPTY_WAL",
             AbstractErrorClassifier._exc_regex(
-                "Record .*EmptyWALRecord.*will be skipped during data restore.*\\[OLocalPaginatedStorage\\]"),
+                "Record .*EmptyWALRecord.*will be skipped during data restore.*\\[OLocalPaginatedStorage\\]"
+            ),
         ),
         (
             ScenarioError.ErrorClassification.SUPPRESSED,
             "RECOVER_NOT_CLOSED",
             AbstractErrorClassifier._exc_regex(
-                "Storage.*was not closed properly. Will try to recover from write ahead log.*\\[OLocalPaginatedStorage\\]"),
+                "Storage.*was not closed properly. Will try to recover from write ahead log.*\\[OLocalPaginatedStorage\\]"
+            ),
         ),
     ]
 
@@ -610,9 +615,9 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
             wl.start()
 
     def stop(self) -> None:
-        def stop_workload(wl: RecordTestDataWorkload, time: float) -> Optional[bool]:
-            wl.join(time)
-            return None if wl.is_alive() else True
+        def stop_workload(workload: RecordTestDataWorkload, time: float) -> Optional[bool]:
+            workload.join(time)
+            return None if workload.is_alive() else True
 
         logging.info("Stopping scenario query workload")
         for wl in self.workloads:

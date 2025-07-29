@@ -16,7 +16,7 @@
             "source.organizeImports": "explicit"
         },
         "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": true,
+        "editor.formatOnSave": true
     },
     "python.defaultInterpreterPath": ".venv/bin/python",
     "python.terminal.activateEnvInCurrentTerminal": true,
@@ -38,5 +38,5 @@
     },
     "cSpell.words": [
         "uncleanly"
-    ],
+    ]
 }

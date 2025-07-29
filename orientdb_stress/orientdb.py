@@ -114,18 +114,16 @@ class OdbServer:
 
     def is_distributed_available(self, server_names: Sequence[str]) -> bool:
         logging.debug("Checking [%s] for HA status of servers: %s", self.name, server_names)
-        dbs = None
+        # dbs = None
         try:
             dbs = self.list_dbs()
+            if not dbs:
+                # EE has a /distributed API to do this, but CE requires a /command
+                # so needs a DB to be specified (and OSystem won't work)
+                # This could be during a cold start of a node that is still synchronising DBs from cluster
+                logging.debug("OrientDB CE requires a database be created to monitor HA status, but none are present")
         except OdbException:
             logging.debug(traceback.format_exc())
-            return False
-
-        if not dbs:
-            # EE has a /distributed API to do this, but CE requires a /command
-            # so needs a DB to be specified (and OSystem won't work)
-            # This could be during a cold start of a node that is still synchronising DBs from cluster
-            logging.debug("OrientDB CE requires a database be created to monitor HA status, but none are present")
             return False
 
         try:
@@ -152,12 +150,12 @@ class OdbServer:
                 if member.get("status") != "ONLINE":
                     logging.debug("Server [%s] is not ONLINE on [%s]", server, self.name)
                     return False
-                dbStatus = member.get("databasesStatus")
-                if not dbStatus:
+                db_status = member.get("databasesStatus")
+                if not db_status:
                     logging.debug("Server [%s] has no DB status on [%s]", server, self.name)
                     return False
                 for db in dbs:
-                    if dbStatus.get(db) != "ONLINE":
+                    if db_status.get(db) != "ONLINE":
                         logging.debug(
                             "Server [%s] does not have db [%s] in ONLINE status on [%s]",
                             server,

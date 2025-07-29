@@ -19,30 +19,31 @@ def main() -> None:
     def list_scenarios(_: argparse.Namespace) -> None:
         print("Available scenarios:")
         for scen in Scenarios.ALL_SCENARIOS:
-            print(f"\t{scen.SCENARIO_NAME():20} : {scen.__doc__}")
+            print(f"\t{scen.scenario_name():20} : {scen.__doc__}")
 
-    def execute_scenario(args: argparse.Namespace) -> None:
+    def execute_scenario(scenario_args: argparse.Namespace) -> None:
         scenario_constructor = next(
-            (scen for scen in Scenarios.ALL_SCENARIOS if scen.SCENARIO_NAME() == args.scenario_name),
+            (scen for scen in Scenarios.ALL_SCENARIOS if scen.scenario_name() == scenario_args.scenario_name),
             None,
         )
         if not scenario_constructor:
-            print(f"Unknown scenario {args.scenario_name}")
+            print(f"Unknown scenario {scenario_args.scenario_name}")
             parser.print_help()
             return
 
         odb_config = OrientDBScenarioConfig(
             ORIENTDB_BASE_NAME, ORIENTDB_HOST, ORIENTDB_BASE_PORT, ORIENTDB_USER, ORIENTDB_PASSWD, ORIENTDB_SERVER_COUNT
         )
-        config = vars(args)
+        config = vars(scenario_args)
         del config["func"]
         del config["scenario_name"]
         # print(config)
         # print(scenario_constructor)
-        run_count = args.scenario_count
+        run_count = scenario_args.scenario_count
         for c in range(1, run_count + 1):
             if run_count > 1:
                 print(f"Run {c}/{run_count}")
+            # noinspection PyArgumentList
             executable_scenario = scenario_constructor(odb_config, **config)
             executable_scenario.run(config)
             print()

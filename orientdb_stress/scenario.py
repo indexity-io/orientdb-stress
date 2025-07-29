@@ -168,9 +168,9 @@ class AbstractErrorClassifier:
         # Try for a more accurate classification
         for suppr_class, suppr_type, supr_matcher in self.classification_patterns:
             if supr_matcher.search(message):
-                return (suppr_class, suppr_type)
+                return suppr_class, suppr_type
 
-        return (ScenarioError.ErrorClassification.UNKNOWN, unknown_type)
+        return ScenarioError.ErrorClassification.UNKNOWN, unknown_type
 
 
 class Scenario:
@@ -385,7 +385,7 @@ class Scenario:
         if self._has_errors():
             logging.info("Errors reported during scenario %s:", self.current_phase.name)
             current_phase_errors = self.error_sets[self.current_phase]
-            for es in sorted(current_phase_errors.values(), key=lambda es: es.name):
+            for es in sorted(current_phase_errors.values(), key=lambda e: e.name):
                 if es.has_errors():
                     logging.info(
                         "%20s : [U:%3d, K:%3d, S:%3d]",

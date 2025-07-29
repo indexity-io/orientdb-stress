@@ -35,7 +35,7 @@ class StreamMonitor(FirmThread[Tuple[int, str]]):
             logging.debug("EOF in stream for %s", self.service)
             return None
         self.line_no += 1
-        return (self.line_no, line)
+        return self.line_no, line
 
     def _do_work(self, work: Tuple[int, str]) -> None:
         line_info = work
