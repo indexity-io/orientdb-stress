@@ -34,7 +34,7 @@ class RecordTestDataManager(ScenarioAware):
 
     def on_scenario_begin(self, scenario: Scenario) -> None:
         self.random = scenario.random
-        # FIXME: propagage timeout from somewhere
+        # FIXME: propagate timeout from somewhere
         res = timed.try_all_until([self._try_clear_records, self._try_create_records], 60)
         if not res:
             raise OdbException("Record test data setup failed")
@@ -152,9 +152,12 @@ class ReadonlyWorkload(RecordWorkload):
 
     def do_work(self, record_id: int) -> Optional[Record]:
         # Balance load on servers so it's somewhat equivalent in load to update path
-        self.tdm.select_record(record_id)
-        self.tdm.select_record(record_id)
-        return self.tdm.select_record(record_id)
+        records = [self.tdm.select_record(record_id) for _ in range(3)]
+        if not records or None in records:
+            logging.error("Failed to load workload record %s", record_id)
+            return None
+        else:
+            return records[0]
 
 
 class PropertyUpdate(ABC):
