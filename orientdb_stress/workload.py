@@ -295,7 +295,7 @@ class RecordTestDataWorkload(FirmThread[int]):
             base_sleep = 1.0 / self.workload_rate
             pause_time = random.uniform(base_sleep * 0.5, base_sleep * 1.5)
             self._wait(pause_time)
-        logging.debug("Workload batch completed")
+        logging.debug("Workload iteration completed")
 
 
 class OrientDBErrorClassifier(AbstractErrorClassifier):
@@ -603,11 +603,13 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
             for index in range(1, workload_threads + 1)
         ]
         self.workload_rate = workload_rate
+        self.workload_readonly = workload_readonly
         self.workload_validation_readonly = workload_validation_readonly
 
     def start(self) -> None:
         logging.info(
-            "Starting scenario query workload on %d threads, %0.2fs ops/s",
+            "Starting scenario query%s workload on %d threads, %0.2fs ops/s",
+            "" if self.workload_readonly else "/update",
             len(self.workloads),
             self.workload_rate,
         )
@@ -642,5 +644,5 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
             # TODO: Could do this with FATAL level in error reporter?
             logging.warning("Background workloads reported failure.")
             return None
-        logging.info("Validating availability for data query/update")
+        logging.info(f"Validating availability for data query%s", "" if self.workload_validation_readonly else "/update")
         return self.tdm.validate_workload(self.workload_validation_readonly)
