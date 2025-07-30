@@ -591,11 +591,9 @@ class RecordTestDataWorkloadManager(ScenarioAware, ScenarioValidator):
                 f"workload-{index}",
                 tdm,
                 [
-                    (
-                        ReadonlyWorkload(tdm)
-                        if workload_readonly
-                        else UpdateWorkload(tdm, [PropertyUpdates.update_for(workload_type)])
-                    )
+                    ReadonlyWorkload(tdm)
+                    if workload_readonly
+                    else UpdateWorkload(tdm, [PropertyUpdates.update_for(workload_type)])
                 ],
                 scenario.error_reporter(f"workload-{index}", error_classifier=OrientDBRESTErrorClassifier()),
                 workload_rate,
