@@ -63,25 +63,41 @@ def main() -> None:
     run_parser.add_argument("scenario_name", help="Name of the scenario to execute")
     run_parser.add_argument("-c", "--scenario_count", help="Number of times to run the scenario", type=int, default=1)
     run_parser.add_argument(
+        "-l",
         "--scenario_length",
         help="Duration of the scenario in seconds",
         type=int,
         default="60",
     )
     run_parser.add_argument(
-        "--dead_time",
-        help="Fractional number of seconds that a node stays dead during a restart",
-        type=float,
-        default=0,
-    )
-    run_parser.add_argument(
+        "-i",
         "--restart_interval",
         help="Fractional number of seconds between node restarts in restart scenarios",
         type=float,
         default=10,
     )
     run_parser.add_argument(
-        "--enable_workload",
+        "-d",
+        "--stop_start_dead_time",
+        help="Fractional number of seconds that a node stays dead during a restart",
+        type=float,
+        default=0,
+    )
+    run_parser.add_argument(
+        "-k",
+        "--stop_start_kill_server",
+        help="Kill server uncleanly in stop/start scenarios",
+        action="store_true",
+    )
+    run_parser.add_argument(
+        "-r",
+        "--stop_start_reset_database",
+        help="Reset data directory of stopped node in stop/start scenarios",
+        action="store_true",
+    )
+    run_parser.add_argument(
+        "-w",
+        "--workload_enabled",
         help="Enables client workload during scenario",
         action="store_true",
     )
@@ -115,17 +131,6 @@ def main() -> None:
         choices=list(PropertyType),
         default=PropertyType.NOT_UNIQUE,
     )
-    run_parser.add_argument(
-        "--stop_start_reset_database",
-        help="Reset data directory of stopped node in stop/start scenarios",
-        action="store_true",
-    )
-    run_parser.add_argument(
-        "--stop_start_kill_server",
-        help="Kill server uncleanly in stop/start scenarios",
-        action="store_true",
-    )
-
     run_parser.set_defaults(func=execute_scenario)
 
     args = parser.parse_args()

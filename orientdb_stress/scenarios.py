@@ -18,7 +18,6 @@ from orientdb_stress.restarter import (
     RandomServerSelector,
     StopStartServerRestarter,
     SequentialServerSelector,
-    RestartingServerRestarter,
 )
 from orientdb_stress.scenario import (
     Scenario,
@@ -96,11 +95,11 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
         scenario_name: str,
         odb_scenario_config: OrientDBScenarioConfig,
         scenario_length: float = 60,
-        enable_workload: bool = False,
+        workload_enabled: bool = False,
         **kwargs: Any,
     ):
         AbstractScenario._init_logging()
-        if enable_workload:
+        if workload_enabled:
             scenario_name = f"{scenario_name}-under-load"
 
         self.scenario_length = scenario_length
@@ -125,7 +124,7 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
         self.scenario.enlist(self.dc, self.server_pool_manager)
         self.scenario.enlist_validation(self)
 
-        if enable_workload:
+        if workload_enabled:
             ScenarioWorkload.enlist(self.scenario, self.orientdb_server_pool, **kwargs)
 
     def run(self, config: Dict[str, Any]) -> None:
@@ -252,7 +251,7 @@ class RollingRestartScenario(AbstractRestartingScenario):
         super().__init__(
             RollingRestartScenario.scenario_name(),
             SequentialServerSelector,
-            RestartingServerRestarter,
+            StopStartServerRestarter,
             config,
             **kwargs,
         )
@@ -267,7 +266,7 @@ class RollingRestartScenario(AbstractRestartingScenario):
 
 
 class RandomRestartScenario(AbstractServerRestartingScenario):
-    """Restarts a random server node at intervals."""
+    """Restarts (stops and then starts) a server node at intervals."""
 
     @staticmethod
     def scenario_name() -> str:
@@ -276,23 +275,6 @@ class RandomRestartScenario(AbstractServerRestartingScenario):
     def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
         super().__init__(
             RandomRestartScenario.scenario_name(),
-            RandomServerSelector,
-            RestartingServerRestarter,
-            config,
-            **kwargs,
-        )
-
-
-class RandomStopStartScenario(AbstractServerRestartingScenario):
-    """Restarts a random server node at intervals."""
-
-    @staticmethod
-    def scenario_name() -> str:
-        return "random-stop-start"
-
-    def __init__(self, config: OrientDBScenarioConfig, **kwargs: Any) -> None:
-        super().__init__(
-            RandomStopStartScenario.scenario_name(),
             RandomServerSelector,
             StopStartServerRestarter,
             config,
@@ -340,7 +322,6 @@ class Scenarios:
     ALL_SCENARIOS: Sequence[Type[AbstractScenario]] = [
         BasicStartupScenario,
         RandomRestartScenario,
-        RandomStopStartScenario,
         AlternatingStopStartScenario,
         RollingRestartScenario,
         AllScenarios,

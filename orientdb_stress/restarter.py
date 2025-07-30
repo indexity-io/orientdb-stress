@@ -47,16 +47,6 @@ class AbstractServerRestarter(ABC):
         pass
 
 
-class RestartingServerRestarter(AbstractServerRestarter):
-    def __init__(self, spm: OrientDBServerPoolManager, **kwargs: Any) -> None:
-        super().__init__(spm, **kwargs)
-
-    def restart_server(self, server: OdbServer) -> bool:
-        mgr = self.spm.mgr_for(server.name)
-        mgr.restart()
-        return True
-
-
 class ServerStopper(ABC):
     def __init__(self, stop_start_reset_database: bool = False, **kwargs: Any):
         self.stop_start_reset_database = stop_start_reset_database
@@ -97,16 +87,17 @@ class KillingServerStopper(ServerStopper):
 
 
 class StopStartServerRestarter(AbstractServerRestarter):
-    def __init__(self, spm: OrientDBServerPoolManager, dead_time: float = 0, **kwargs: Any) -> None:
+    def __init__(self, spm: OrientDBServerPoolManager, stop_start_dead_time: float = 0, **kwargs: Any) -> None:
         super().__init__(spm, **kwargs)
         self._stopper = ServerStopper.stopper_for(**kwargs)
-        self.dead_time = dead_time
+        self.stop_start_dead_time = stop_start_dead_time
 
     def restart_server(self, server: OdbServer) -> bool:
         mgr = self.spm.mgr_for(server.name)
         self._stopper.stop(mgr)
-        logging.debug("Waiting for restart for %0.2fs", self.dead_time)
-        time.sleep(self.dead_time)
+        if self.stop_start_dead_time > 0.0001:
+            logging.debug("Waiting for restart for %0.2fs", self.stop_start_dead_time)
+            time.sleep(self.stop_start_dead_time)
         mgr.start()
         return True
 

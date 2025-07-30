@@ -10,10 +10,8 @@ This tool currently only works on patched versions of OrientDB that incorporate 
 
 At time of writing these patches can be found at https://github.com/indexity-io/orientdb/tree/3.1/ha_db_stability
 
-In addition, the tool currently utilises a patch that artificially expands the startup time of the distributed plugin to expose issues caused during that window to simulate real world conditions where the OrientDB nodes are on remote nodes with longer TCP latencies.
-
-For OrientDB Community, ...
-For OrientDB Enterprise Edition, ...
+When running in development, this tool utilises [a patch that artificially expands the startup time of the distributed plugin](https://github.com/indexity-io/orientdb/commit/902195ce8fad45ea3ada97efe536e262b6df052a) to expose issues caused during that window to simulate real world conditions where the OrientDB nodes are on remote nodes with longer TCP latencies.
+The tool will run without this patch, but may not detect issues relating to startup as easily.
 
 The tool has been tested against OrientDB 3.1 and 3.2. Other versions are unlikely to work.
 
@@ -27,11 +25,11 @@ This tool essentially does the following:
 - creates test database, and installs a test schema and test records (if workload is enabled)
 - if enabled, starts a query/update workload on the database
 - periodically performs actions to disturb/stress the cluster
-- after each disturbance, verifies that the cluster returns to operation
+- after each disturbance, verifies that the cluster returns to operational status and can service requests
 
 During the scenario, the OrientDB logs and workload actions are monitored for errors, and all errors found are classified and logged.
 
-Each scenario execution is recorded in a numbered folder under the `./scenarios` folder. The scenario recording includes:
+A transcript of each scenario execution is recorded in a numbered folder under the `./scenarios` folder. The scenario recording includes:
 
 - log files of each of the OrientDB nodes (which are live updated during scenario execution), named `docker-<nodename>.log`
 - a `log.txt` file that reproduces the log transcript from the console (this is all the logging at the `INFO` or higher level).
@@ -71,38 +69,62 @@ Currently only running from source is supported. See the development instruction
 `orientdb-stress run --help` will show available configuration options, including defaults.
 
 ```
-usage: orientdb-stress run [-h] [-c SCENARIO_COUNT] [--scenario_length SCENARIO_LENGTH] [--dead_time DEAD_TIME] [--restart_interval RESTART_INTERVAL] [--enable_workload] [--workload_threads WORKLOAD_THREADS] [--workload_rate WORKLOAD_RATE]
-                           [--workload_record_count WORKLOAD_RECORD_COUNT] [--workload_readonly] [--workload_validation_readonly] [--alternating_reset_server] [--alternating_kill_server]
-                           scenario_name
+usage: stress.py run [-h] [-c SCENARIO_COUNT] [-l SCENARIO_LENGTH]
+                     [-i RESTART_INTERVAL] [-d STOP_START_DEAD_TIME] [-k] [-r]
+                     [-w] [--workload_threads WORKLOAD_THREADS]
+                     [--workload_rate WORKLOAD_RATE]
+                     [--workload_record_count WORKLOAD_RECORD_COUNT]
+                     [--workload_readonly] [--workload_validation_readonly]
+                     [--workload_type {UNIQUE,NOT_UNIQUE,FULL_TEXT}]
+                     scenario_name
 
 positional arguments:
   scenario_name         Name of the scenario to execute
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -c SCENARIO_COUNT, --scenario_count SCENARIO_COUNT
-                        Number of times to run the scenario (default: None)
-  --scenario_length SCENARIO_LENGTH
+  -c, --scenario_count SCENARIO_COUNT
+                        Number of times to run the scenario (default: 1)
+  -l, --scenario_length SCENARIO_LENGTH
                         Duration of the scenario in seconds (default: 60)
-  --dead_time DEAD_TIME
-                        Fractional number of seconds that a node stays dead during a restart (default: 0)
-  --restart_interval RESTART_INTERVAL
-                        Fractional number of seconds between node restarts in restart scenarios (default: 10)
-  --enable_workload     Enables client workload during scenario (default: False)
+  -i, --restart_interval RESTART_INTERVAL
+                        Fractional number of seconds between node restarts in
+                        restart scenarios (default: 10)
+  -d, --stop_start_dead_time STOP_START_DEAD_TIME
+                        Fractional number of seconds that a node stays dead
+                        during a restart (default: 0)
+  -k, --stop_start_kill_server
+                        Kill server uncleanly in stop/start scenarios
+                        (default: False)
+  -r, --stop_start_reset_database
+                        Reset data directory of stopped node in stop/start
+                        scenarios (default: False)
+  -w, --workload_enabled
+                        Enables client workload during scenario (default:
+                        False)
   --workload_threads WORKLOAD_THREADS
                         Number of workload threads (default: 1)
   --workload_rate WORKLOAD_RATE
-                        Rate to run workload at in fractional operations/second. (default: 10)
+                        Rate to run workload at in fractional
+                        operations/second. (default: 10)
   --workload_record_count WORKLOAD_RECORD_COUNT
-                        Number of records to use in query workload (default: 100)
-  --workload_readonly   Perform only read operations in background workload (default: False)
+                        Number of records to use in query workload (default:
+                        100)
+  --workload_readonly   Perform only read operations in background workload
+                        (default: False)
   --workload_validation_readonly
-                        Perform only read operations in validation workload (default: False)
-  --alternating_reset_server
-                        Reset data directory of stopped node in alternate stop/start scenarios (default: False)
-  --alternating_kill_server
-                        Kill server uncleanly in alternate stop/start scenarios (default: False)
+                        Perform only read operations in validation workload
+                        (default: False)
+  --workload_type {UNIQUE,NOT_UNIQUE,FULL_TEXT}
+                        The type of record updates to apply during update
+                        workloads (default: NOT_UNIQUE)
 ```
+
+## Custom scenario execution
+
+To extend the scenario duration, provide a custom scenario duration with the `--scenario_length` argument. The scenario behaviour and workload will repeat until the scenario duration completes.
+
+To repeat the same scenario multiple times, specify a scenario count with `--scenario_count`. The configured scenario will be executed repeatedly, each with its own scenario transcript.
 
 # Supported Scenarios
 
@@ -116,14 +138,14 @@ Starts a cluster, wait for HA to stabilise, run workload for scenario length (if
 
 `orientdb-stress run random-restart`
 
-Restarts a random server node at intervals.
+Restarts a random server node at intervals, stopping and then starting the server.
 This tests the behaviour of the system when a node is restarted (perhaps with a small amount of downtime).
 
 ## Alternating Stop Start
 
 `orientdb-stress run alternating-stop-start`
 
-Stops and starts a random node, waiting for HA status to stabilise after each operation.
+Stops and starts a random node, waiting for HA status to stabilise and the configured restart interval between each (stop/start) operation.
 In comparison to the restart scenario, this scenario tests the behaviour of the system when nodes are taken down for maintenance for an extended period, and then restored to operation.
 
 ## Rolling Restart
@@ -133,37 +155,37 @@ In comparison to the restart scenario, this scenario tests the behaviour of the 
 Sequentially restarts server nodes at intervals, validating HA status after each set of restarts.
 This is a pathological scenario, designed to expose problems with distributed startup and shutdown when the cluster is highly unstable.
 
-## Random Kill
+## Custom restart behaviour
 
-`orientdb-stress run random-kill`
+All of the restart scenarios (including `alternate-start-stop`) can be customised with the following arguments:
 
-Kills a random server node at intervals.
-This test is similar to the random restart scenario, but uncleanly kills the OrientDB nodes using `KILL` signals.
-This tests the ability of the cluster to recover from node failures, as well as the ability to recover from unclean shutdown of data stores.
+* `--restart_interval` - customises the duration between system restart actions. 
+* `--stop_start_dead_time` - specifies a time (in fractional seconds) that the server should stay down during a restart event.
+* `--stop_start_kill_server` - stops the server uncleanly with a kill signal.
+* `--stop_start_reset_database` - removes the database files for the server after stopping, requiring it to re-sync with the cluster after restart.
 
 # Workloads
 
-All of the scenarios can be run with a query/update workload by providing the `--enable_workload` arguments, and customised using various `--workload_*` arguments.
+All of the scenarios can be run with a query/update workload by providing the `--workload_enabled` arguments, and customised using various `--workload_*` arguments.
 
+By default the workload involves making to fields in database records and re-checking the updates were made by querying the database again, which is intended to detect write availability and lost update issues.
 To apply a read-only workload, also specify `--workload_readonly`.
 
-At present the only workload implemented is updates to a property with a unique index.
+By default, the workload consist of updates to non-unique fields, but this can be modified by using the `--workload_type` argument (to target `UNIQUE`, `NOT_UNIQUE` or `FULL_TEXT` fields).
 
 ## Workload Validation
 
-When workload is enabled, operation of the database to server query/update workloads will be verified at each verification phase:
-
- - for read-only workloads, records are queried.
- - for update workloads, records are queried, updated and queried again to check for successful update - this will detect failed updates, or lost updates.
+When workload is enabled, operation of the database to server query/update workloads will be verified at each verification phase.
+Similarly to the workload itself, the default workload validation involves updating and checking fields, but this can be changed to read-only by specifying `--workload_validation_readonly`
 
 # Developing
 
 Install [Poetry 1.8+](https://python-poetry.org/).
 
 `poetry install`
-`poetry shell`
+`poetry env activate`
 
-A Visual Studio Code workspace is also included.
+A Visual Studio Code and PyCharm workspaces are also included.
 
 A shim script is included in the project root, which allows running the module live without having to repeatedly run `poetry install`.
 
