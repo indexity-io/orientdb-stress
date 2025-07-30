@@ -3,7 +3,7 @@ import random
 import re
 import traceback
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Sequence, Union
+from typing import Any, Optional, Sequence
 
 from orientdb_stress import timed
 from orientdb_stress.concurrent import FirmThread
@@ -17,6 +17,7 @@ from orientdb_stress.scenario import (
     ScenarioError,
     ScenarioValidator,
 )
+from orientdb_stress.timed import TryResult, Timeout, Success, Failure
 
 
 class RecordWorkload(ABC):
@@ -275,26 +276,30 @@ class RecordTestDataWorkload(FirmThread[int]):
         rec_id = work
         logging.debug("Running workload")
 
-        def query_with_retry() -> Optional[Union[bool, Record]]:
+        def query_with_retry() -> Optional[TryResult[Record]]:
             if not self.is_running():
                 # Early exit when thread is stopping
                 logging.debug("Aborting workload execution due to thread exit")
-                return False
+                return Timeout()
             try:
-                rec = None
-                for wl in self.workloads:
-                    rec = wl.do_work(rec_id)
-                return rec
+                results = [wl.do_work(rec_id) for wl in self.workloads]
+                if not results or None in results:
+                    return Failure()
+                else:
+                    return Success(results[0])
             except OdbRestException as e:
                 logging.debug("Query for id %s failed with code %d - will retry", rec_id, e.code)
                 self.error_reporter.report_error(self.request_id, f"HTTP {e.server_root} {e.code} {e.message}")
                 return None
 
         result = timed.try_until(query_with_retry, 60)
-        if not result:
+        if result is None:
             logging.warning("Workload queries failed after 60s of retries")
             self._fail_workload()
-        else:
+        elif result.is_failure():
+            logging.warning("Workload failed")
+            self._fail_workload()
+        elif self.is_running():
             base_sleep = 1.0 / self.workload_rate
             pause_time = random.uniform(base_sleep * 0.5, base_sleep * 1.5)
             self._wait(pause_time)
