@@ -43,6 +43,8 @@ class OrientDBScenarioConfig:
     user: str
     password: str
     server_count: int
+    docker_image: str
+    docker_version: str
 
 
 class AbstractScenario(ABC):

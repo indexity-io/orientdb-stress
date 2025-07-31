@@ -15,6 +15,8 @@ ORIENTDB_HOST = os.getenv("ORIENTDB_HOST", "localhost")
 ORIENTDB_BASE_NAME = os.getenv("ORIENTDB_BASE_NAME", "dorientdb")
 ORIENTDB_BASE_PORT = int(os.getenv("ORIENTDB_BASE_PORT", "2480"))
 ORIENTDB_SERVER_COUNT = int(os.getenv("ORIENTDB_SERVER_COUNT", "3"))
+ORIENTDB_DOCKER_VERSION = os.getenv("ORIENTDB_DOCKER_VERSION", "3.2.42")
+ORIENTDB_DOCKER_IMAGE = os.getenv("ORIENTDB_DOCKER_IMAGE", "orientdb")
 
 
 def main() -> None:
@@ -36,7 +38,14 @@ def main() -> None:
             return
 
         odb_config = OrientDBScenarioConfig(
-            ORIENTDB_BASE_NAME, ORIENTDB_HOST, ORIENTDB_BASE_PORT, ORIENTDB_USER, ORIENTDB_PASSWD, ORIENTDB_SERVER_COUNT
+            ORIENTDB_BASE_NAME,
+            ORIENTDB_HOST,
+            ORIENTDB_BASE_PORT,
+            ORIENTDB_USER,
+            ORIENTDB_PASSWD,
+            ORIENTDB_SERVER_COUNT,
+            ORIENTDB_DOCKER_IMAGE,
+            ORIENTDB_DOCKER_VERSION,
         )
         config = vars(scenario_args)
         del config["func"]
