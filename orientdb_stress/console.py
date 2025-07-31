@@ -2,8 +2,12 @@ import argparse
 import os
 import time
 
+from dotenv import load_dotenv
+
 from orientdb_stress.record import PropertyType
 from orientdb_stress.scenarios import OrientDBScenarioConfig, Scenarios
+
+load_dotenv()
 
 ORIENTDB_USER = os.getenv("ORIENTDB_USER", "root")
 ORIENTDB_PASSWD = os.getenv("ORIENTDB_PASSWD", "password")
