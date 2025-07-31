@@ -22,15 +22,15 @@
         <property name="hazelcast.merge.next.run.delay.seconds">15</property>
     </properties>
     <network>
-        <public-address>dorientdb3</public-address>
+        <public-address>{{ base_name }}{{ server_index }}</public-address>
         <port auto-increment="false">2434</port>
         <join>
             <multicast enabled="false">
             </multicast>
             <tcp-ip enabled="true">
-                <member>dorientdb1</member>
-                <member>dorientdb2</member>
-                <member>dorientdb3</member>
+                {% for i in range(1, server_count + 1) -%}
+                <member>{{ base_name }}{{ i }}</member>
+                {% endfor %}
             </tcp-ip>
         </join>
         <outbound-ports>

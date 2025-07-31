@@ -291,7 +291,7 @@ class Scenario:
         try:
             self._begin(config)
         except Exception as e:  # pylint: disable=broad-except
-            logging.error("Scenario begin failed with error %s[%s]", type(e).__name__, e)
+            logging.error("Scenario begin failed with error: %s[%s]", type(e).__name__, e)
             logging.debug(traceback.format_exc())
             self.fail_scenario()
             self._end()
@@ -488,11 +488,8 @@ class ScenarioManager:
     def __init__(self, root_dir: str) -> None:
         self.root_dir = Path(root_dir).resolve()
         self.scenario_dir = self.root_dir / "scenarios"
-        self.data_dir = self.root_dir / "data"
-        self._init_scenario_store()
-
-    def _init_scenario_store(self) -> None:
         self.scenario_dir.mkdir(exist_ok=True)
+        self.data_dir = self.scenario_dir / "data"
 
     def _next_scenario_index(self) -> int:
         scens = sorted(list(d.name for d in self.scenario_dir.iterdir() if ScenarioManager._is_scenario_dir(d)))
@@ -532,6 +529,9 @@ class ScenarioAwareFirmThread(FirmThread[W], ScenarioAware):
 
 
 class ScenarioAwareDockerCompose(DockerCompose, ScenarioAware):
+    def __init__(self, docker_compose_file: Path) -> None:
+        super().__init__(docker_compose_file)
+
     def on_scenario_begin(self, scenario: Scenario) -> None:
         self.down_all()
 

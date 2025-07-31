@@ -4,10 +4,12 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Sequence, Type
 
 from orientdb_stress import timed
 from orientdb_stress.core import LOG_FORMAT
+from orientdb_stress.docker import DockerComposeTemplates
 from orientdb_stress.orientdb import Odb, OdbServer, OdbServerPool
 from orientdb_stress.process import OrientDBServerPoolManager
 from orientdb_stress.record import Record
@@ -26,6 +28,7 @@ from orientdb_stress.scenario import (
     ScenarioValidator,
 )
 from orientdb_stress.schema import OdbSchemaInstaller
+from orientdb_stress.templates import Templates
 from orientdb_stress.workload import (
     RecordTestDataManager,
     RecordTestDataWorkloadManager,
@@ -89,6 +92,30 @@ class ScenarioWorkload:
         scenario.enlist_validation(workload_mgr)
 
 
+class OdbConfigTemplates:
+    @staticmethod
+    def generate(config_dir: Path, config: OrientDBScenarioConfig):
+        # Load distributed config template
+        distributed_template_name = "config/distributed-db-config.json.j2"
+        distributed_template = Templates.load_template(distributed_template_name)
+        distributed_config_file = config_dir / "distributed-db-config.json"
+
+        context = vars(config)
+
+        # Generate distributed config file
+        distributed_template.generate(distributed_config_file, context)
+
+        # Load and generate hazelcast config for each server
+        hazelcast_template_name = "config/hazelcast.xml.j2"
+        hazelcast_template = Templates.load_template(hazelcast_template_name)
+
+        for server_index in range(1, config.server_count + 1):
+            server_context = context.copy()
+            server_context["server_index"] = server_index
+            server_config_file = config_dir / f"hazelcast-{server_index}.xml"
+            hazelcast_template.generate(server_config_file, server_context)
+
+
 class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
     def __init__(
         self,
@@ -106,7 +133,16 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
         self.logger = logging.getLogger(type(self).__name__)
         self.sm = ScenarioManager(os.getcwd())
         self.scenario = self.sm.new_scenario(scenario_name)
-        self.dc = ScenarioAwareDockerCompose()
+        dc_template_name = "docker-compose-orientdb"
+        dc_template = DockerComposeTemplates.load_template(dc_template_name)
+        dc_file = self.scenario.path / "docker-compose.yml"
+        dc_template.generate(dc_file, vars(odb_scenario_config))
+        self.dc = ScenarioAwareDockerCompose(dc_file)
+
+        odb_scenario_config_dir = self.scenario.path / "config"
+        odb_scenario_config_dir.mkdir(parents=True, exist_ok=True)
+        OdbConfigTemplates.generate(odb_scenario_config_dir, odb_scenario_config)
+
         # noinspection HttpUrlsUsage
         self.orientdb_server_pool = OdbServerPool(
             [

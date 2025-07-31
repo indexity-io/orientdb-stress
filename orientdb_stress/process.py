@@ -82,8 +82,9 @@ class StreamMonitor(FirmThread[Tuple[int, str]]):
 
 
 class OrientDBServerMonitor(FirmThread[subprocess.Popen[Text]]):
-    def __init__(self, service: str, transcript_path: Path, error_reporter: Scenario.ErrorReporter) -> None:
+    def __init__(self, dc: DockerCompose, service: str, transcript_path: Path, error_reporter: Scenario.ErrorReporter) -> None:
         super().__init__(name=f"OrientDB-ServerMonitor-{service}")
+        self.dc = dc
         self.service = service
         self.transcript_path = transcript_path
         self.error_reporter = error_reporter
@@ -97,12 +98,7 @@ class OrientDBServerMonitor(FirmThread[subprocess.Popen[Text]]):
             self.stream_mon.wait_for_exit(1)
             start_line_no = self.stream_mon.current_line_no()
 
-        self.process = subprocess.Popen[Text](
-            ["docker", "compose", "logs", self.service, "--follow", "--since", "300ms"],
-            text=True,
-            stderr=subprocess.STDOUT,
-            stdout=subprocess.PIPE,
-        )
+        self.process = self.dc.logs(self.service)
         logging.debug("Started docker compose logs process %d", self.process.pid)
         assert self.process.stdout is not None
         self.stream_mon = StreamMonitor(
@@ -174,7 +170,7 @@ class OrientDBServerProcessManager:
         self.rm()
 
     def start(self) -> None:
-        self.mon = OrientDBServerMonitor(self.service, self.transcript_path, self.error_reporter)
+        self.mon = OrientDBServerMonitor(self.dc, self.service, self.transcript_path, self.error_reporter)
         self.dc.start(self.service)
         self._set_running(True)
         self.mon.start()  # docker compose logs won't detect logs unless this occurs after start in case of previous kill
@@ -281,4 +277,4 @@ class OrientDBServerPoolManager(ScenarioAware):
 
     def on_scenario_end(self, scenario: Scenario) -> None:
         self.stop_all()
-        self.backup_data(scenario.allocate_file("orientdb-backup"))
+        # self.backup_data(scenario.allocate_file("orientdb-backup"))
