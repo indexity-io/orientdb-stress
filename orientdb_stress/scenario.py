@@ -321,11 +321,6 @@ class Scenario:
         logging.info("Running scenario [%d-%s]", self.index, self.name)
         logging.info("  Transcript in %s", self.path)
         logging.info("  RANDOM SEED: %s", self.random_seed)
-        if config:
-            logging.info("  Config options:")
-            for name, value in sorted(config.items()):
-                logging.info("    %-30s = %s", name, value)
-
         logging.info("Scenario preparation beginning...")
         for sa in self.members:
             self.started_members.append(sa)

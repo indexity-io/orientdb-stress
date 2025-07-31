@@ -26,6 +26,7 @@ from orientdb_stress.scenario import (
     ScenarioAwareDockerCompose,
     ScenarioManager,
     ScenarioValidator,
+    ScenarioAware,
 )
 from orientdb_stress.schema import OdbSchemaInstaller
 from orientdb_stress.templates import Templates
@@ -118,6 +119,25 @@ class OdbConfigTemplates:
             hazelcast_template.generate(server_config_file, server_context)
 
 
+class ScenarioConfigReporter(ScenarioAware):
+    def __init__(self, odb_scenario_config: OrientDBScenarioConfig, config: Dict[str, Any]) -> None:
+        self.odb_scenario_config = odb_scenario_config
+        self.config = config
+
+    def on_scenario_begin(self, scenario: "Scenario") -> None:
+        logging.info("  Scenario Config:")
+        for name, value in sorted(self.config.items()):
+            logging.info("    %-30s = %s", name, value)
+
+        odb_config = vars(self.odb_scenario_config)
+        logging.info(f"  OriendDB Scenario Config:")
+        for name, value in sorted(odb_config.items()):
+            logging.info("    %-30s = %s", name, value)
+
+    def on_scenario_end(self, scenario: "Scenario") -> None:
+        pass
+
+
 class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
     def __init__(
         self,
@@ -158,8 +178,10 @@ class AbstractDockerComposeScenario(AbstractScenario, ScenarioValidator, ABC):
             ],
             self.scenario.random,
         )
+
         self.server_pool_manager = OrientDBServerPoolManager(self.orientdb_server_pool, self.scenario, self.dc, self.sm.data_dir)
-        self.scenario.enlist(self.dc, self.server_pool_manager)
+        config_reporter = ScenarioConfigReporter(odb_scenario_config, kwargs)
+        self.scenario.enlist(config_reporter, self.dc, self.server_pool_manager)
         self.scenario.enlist_validation(self)
 
         if workload_enabled:
