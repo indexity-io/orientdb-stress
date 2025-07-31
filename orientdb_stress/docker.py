@@ -7,6 +7,24 @@ from typing import Text
 from orientdb_stress.templates import Templates, Template
 
 
+class Docker:
+    LOG = logging.getLogger("Docker")
+
+    @staticmethod
+    def docker_cleanup_by_label(label: str, label_value: str) -> None:
+        label_filter = f"label={label}={label_value}"
+        subprocess.run(
+            [f"docker container rm -fv $(docker ps -q --filter '{label_filter}') || true"],
+            shell=True,
+            capture_output=True,
+        )
+        subprocess.run(
+            ["docker network prune -f || true"],
+            shell=True,
+            capture_output=True,
+        )
+
+
 class DockerCompose:
     LOG = logging.getLogger("DockerCompose")
 

@@ -22,4 +22,7 @@ services:
         useradd orientdb --uid 501
         chown -R orientdb /orientdb
         setpriv --reuid=orientdb --regid=orientdb --init-groups --inh-caps=-all dserver.sh debug'
+    labels:
+      orientdb-stress-role: db-container
+
 {% endfor %}

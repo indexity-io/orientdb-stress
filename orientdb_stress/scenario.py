@@ -22,7 +22,7 @@ from typing import (
 
 from orientdb_stress.concurrent import FirmThread
 from orientdb_stress.core import LOG_FORMAT
-from orientdb_stress.docker import DockerCompose
+from orientdb_stress.docker import DockerCompose, Docker
 
 
 class ScenarioAware(ABC):
@@ -528,7 +528,10 @@ class ScenarioAwareDockerCompose(DockerCompose, ScenarioAware):
         super().__init__(docker_compose_file)
 
     def on_scenario_begin(self, scenario: Scenario) -> None:
-        self.down_all()
+        # TODO: Should be in scenarios.py
+        # With per-scenario docker files, docker container identity is harder to manage
+        #  so we need to manually clean up containers here from previous aborted runs
+        Docker.docker_cleanup_by_label("orientdb-stress-role", "db-container")
 
     def on_scenario_end(self, scenario: Scenario) -> None:
         pass
