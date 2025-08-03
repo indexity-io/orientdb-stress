@@ -2,6 +2,7 @@ import json
 import logging
 import traceback
 import typing
+import urllib.parse
 from random import Random
 from typing import Any, Optional, Sequence
 
@@ -74,7 +75,8 @@ class OdbServer:
         return self.invoke_rest("POST", f"/command/{database}/sql/", post_data=query)
 
     def sql(self, database: str, query: str) -> JsonObject:
-        return self.invoke_rest("GET", f"/query/{database}/sql/{query.replace(' ', '%20')}")
+        encoded_query = urllib.parse.quote(query)
+        return self.invoke_rest("GET", f"/query/{database}/sql/{encoded_query}")
 
     def update(self, database: str, update_query: str) -> int:
         res = self.cmd(database, update_query)
