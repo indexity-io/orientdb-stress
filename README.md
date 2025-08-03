@@ -31,10 +31,11 @@ During the scenario, the OrientDB logs and workload actions are monitored for er
 
 A transcript of each scenario execution is recorded in a numbered folder under the `./scenarios` folder. The scenario recording includes:
 
+- the `docker-compose.yml` and OrientDB config files used to run the scenario.
+- the OrientDB server data directory, containing all databases in their state at end of scenario.
 - log files of each of the OrientDB nodes (which are live updated during scenario execution), named `docker-<nodename>.log`
 - a `log.txt` file that reproduces the log transcript from the console (this is all the logging at the `INFO` or higher level).
 - a `log-debug.txt` file that contains all logging, including `DEBUG` messages.
-
 
 On scenario completion, additional files are created:
 
@@ -42,7 +43,6 @@ On scenario completion, additional files are created:
 - if the scenario failed, a `failed` marker file is created.
 - an `errors` file is created that summarises all the errors encountered during the scenario, including the phase, source and log location of each error.
 - `errors_UNKNOWN` and `errors_KNOWN` files are created if any unknown or known errors are encountered, summarising the phase and log location of each error.
-- an `orientdb-backup.tar.gz` archive is created, containing the data and backup directories of each of the OrientDB nodes.
 
 ## Error Classification
 
@@ -126,6 +126,22 @@ To extend the scenario duration, provide a custom scenario duration with the `--
 
 To repeat the same scenario multiple times, specify a scenario count with `--scenario_count`. The configured scenario will be executed repeatedly, each with its own scenario transcript.
 
+## Custom scenario configuration
+
+Other aspects of the scenario execution can be customised with environment variables, which can also be specified in a `.env` file in the project root directory.
+
+| Environment Variable   | Description             | Default    |
+| ---------------------- | ----------------------- | ---------- |
+| `ORIENTDB_USER` 		 | OrientDB admin username | `root`		|
+| `ORIENTDB_PASSWD`	 	 | OrientDB admin password | `password`	|
+| `ORIENTDB_HOST` 		 | Address of the docker-compose external network interface | `localhost`	|
+| `ORIENTDB_BASE_NAME` 	 | Prefix of OrientDB server (and container) names | `dorientdb`	|
+| `ORIENTDB_BASE_PORT` 	 | Base port for OrientDB services | `2480`		|
+| `ORIENTDB_SERVER_COUNT`  | Number of nodes in the OrientDB cluster | `3`			|
+| `ORIENTDB_DOCKER_VERSION`| Docker container version to use | `3.2.42`		|
+| `ORIENTDB_DOCKER_IMAGE`  | Docker container image to use | `orientdb` 	|
+
+
 # Supported Scenarios
 
 ## Basic Startup
@@ -180,7 +196,7 @@ Similarly to the workload itself, the default workload validation involves updat
 
 # Developing
 
-Install [Poetry 1.8+](https://python-poetry.org/).
+Install [Poetry 2.1+](https://python-poetry.org/).
 
 `poetry install`
 `poetry env activate`
