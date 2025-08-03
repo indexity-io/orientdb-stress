@@ -1,8 +1,6 @@
 # Stress Tester for OrientDB
 
-A Docker based stress testing tool for [OrientDB](https://github.com/orientechnologies/orientdb).
-
-This tool was primarily designed for OrientDB developers to observe the behaviour of the a distributed (multi-node) database under various stress conditions (e.g. restarting, crashing). 
+A Docker based stress testing tool for [OrientDB](https://github.com/orientechnologies/orientdb), primarily designed for OrientDB developers to observe the behaviour of the a distributed (multi-node) database under various stress conditions (e.g. restarting, crashing). 
 
 ## Version Compatibility
 
