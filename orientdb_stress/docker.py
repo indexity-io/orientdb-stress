@@ -14,7 +14,7 @@ class Docker:
     def docker_cleanup_by_label(label: str, label_value: str) -> None:
         label_filter = f"label={label}={label_value}"
         subprocess.run(
-            [f"docker container rm -fv $(docker ps -q --filter '{label_filter}') || true"],
+            [f"docker container rm --force --volumes $(docker container ls --quiet --all --filter '{label_filter}') || true"],
             shell=True,
             capture_output=True,
         )
