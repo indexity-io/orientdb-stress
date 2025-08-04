@@ -4,14 +4,10 @@ A Docker based stress testing tool for [OrientDB](https://github.com/orientechno
 
 ## Version Compatibility
 
-This tool currently only works on patched versions of OrientDB that incorporate changes to the `HA STATUS` API that allow HA database state to be examined remotely.
-
-At time of writing these patches can be found at https://github.com/indexity-io/orientdb/tree/3.1/ha_db_stability
+This tool has been tested against recent versions of OrientDB 3.1 and 3.2 that incorporate changes to the `HA STATUS` API that allow HA database state to be examined remotely.
 
 When running in development, this tool utilises [a patch that artificially expands the startup time of the distributed plugin](https://github.com/indexity-io/orientdb/commit/902195ce8fad45ea3ada97efe536e262b6df052a) to expose issues caused during that window to simulate real world conditions where the OrientDB nodes are on remote nodes with longer TCP latencies.
 The tool will run without this patch, but may not detect issues relating to startup as easily.
-
-The tool has been tested against OrientDB 3.1 and 3.2. Other versions are unlikely to work.
 
 # Usage
 
