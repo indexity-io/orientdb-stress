@@ -20,7 +20,7 @@ ORIENTDB_DOCKER_IMAGE = os.getenv("ORIENTDB_DOCKER_IMAGE", "orientdb")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Stress Tester for OrientDB")
+    parser = argparse.ArgumentParser(prog=__package__, description="Stress Tester for OrientDB")
 
     def list_scenarios(_: argparse.Namespace) -> None:
         print("Available scenarios:")

@@ -63,7 +63,7 @@ Currently only running from source is supported. See the development instruction
 `orientdb-stress run --help` will show available configuration options, including defaults.
 
 ```
-usage: stress.py run [-h] [-c SCENARIO_COUNT] [-l SCENARIO_LENGTH]
+usage: orientdb_stress run [-h] [-c SCENARIO_COUNT] [-l SCENARIO_LENGTH]
                      [-i RESTART_INTERVAL] [-d STOP_START_DEAD_TIME] [-k] [-r]
                      [-w] [--workload_threads WORKLOAD_THREADS]
                      [--workload_rate WORKLOAD_RATE]
@@ -197,6 +197,4 @@ Install [Poetry 2.1+](https://python-poetry.org/).
 
 A Visual Studio Code and PyCharm workspaces are also included.
 
-A shim script is included in the project root, which allows running the module live without having to repeatedly run `poetry install`.
-
-`stress.py` simply invokes the core command, and passes all command line arguments.
+Use `python -m orientdb_stress` to run in development.
